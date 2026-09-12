@@ -1086,7 +1086,15 @@ function render(){
   const tb=$('topbar');
   tb.className='topbar'+(top.screen==='root'?' root':'');
   tb.innerHTML=topbarHTML(top);
+  // Measure the split as it is right now (mid-drag, mid-animation, or
+  // settled) so the re-rendered one can continue from the same place
+  // instead of jumping — render() rebuilds the whole screen on every
+  // message, which would otherwise kill any open/close animation.
+  const oldTop=document.querySelector('.detail-split-top');
+  const fromPct=oldTop?splitCurrentPct(oldTop):null;
   $('screen').innerHTML=screenHTML(top);
+  const newTop=document.querySelector('.detail-split-top');
+  if(newTop) animateSplitTo(newTop, fromPct==null?100:fromPct, +newTop.dataset.pct);
   // Brief, Topology, and Observations all split top/bottom once that
   // investigation's chat has actually started (see wrapChatSplit) —
   // #screen itself has to stop being the scroll container at that
@@ -1292,6 +1300,34 @@ function renderDetail(id){
   </div>${nextStepHTML}`;
   return wrapChatSplit(id, i, briefHTML);
 }
+// ---- Chat sheet animation ----
+// The chat "sheet" (grabber + chat half) rises from the bottom by shrinking
+// the reference pane's flex-basis; flex-basis transitions smoothly and the
+// bottom pane just absorbs the rest, so one property drives the whole move.
+const SPLIT_EASE='flex-basis .34s cubic-bezier(.2,0,.38,.9)';
+function splitCurrentPct(topEl){
+  const c=topEl.parentElement; if(!c) return null;
+  const ch=c.getBoundingClientRect().height; if(!ch) return null;
+  return topEl.getBoundingClientRect().height/ch*100;
+}
+function animateSplitTo(topEl, fromPct, toPct){
+  if(Math.abs(fromPct-toPct)<0.5){ topEl.style.transition='none'; topEl.style.flex=`0 0 ${toPct}%`; return; }
+  topEl.style.transition='none';
+  topEl.style.flex=`0 0 ${fromPct}%`;
+  void topEl.offsetHeight; // commit the start position before easing
+  topEl.style.transition=SPLIT_EASE;
+  topEl.style.flex=`0 0 ${toPct}%`;
+}
+// × on the chat half: slide the sheet away first, then actually collapse the
+// split in state (render() would otherwise remove it instantly).
+function closeChatSheet(id){
+  const chat=ensureChat(id), topEl=document.querySelector('.detail-split-top');
+  if(!topEl){ chat.splitHidden=true; return render(); }
+  animateSplitTo(topEl, splitCurrentPct(topEl)||chat.splitPct||50, 100);
+  chat.closing=true;
+  setTimeout(()=>{ chat.closing=false; chat.splitHidden=true; render(); }, 350);
+}
+
 // Shared by the brief screen, Topology, and Observations — any screen
 // that's "about" one investigation gets the same anchored composer and
 // the same split-on-send behavior, all backed by the one chat thread
@@ -1310,7 +1346,7 @@ function wrapChatSplit(id, i, topHTML){
   const feed=chat.messages.filter(m=>!m.kind).map(m=>feedItemHTML(i,m,chat)).join('');
   const pct=chat.splitPct||50;
   return `<div class="detail-split">
-    <div class="detail-split-top" style="flex:0 0 ${pct}%">${topHTML}</div>
+    <div class="detail-split-top" data-pct="${pct}" style="flex:0 0 ${pct}%">${topHTML}</div>
     <div class="split-grabber" data-splitgrab="${id}" aria-hidden="true"></div>
     <div class="detail-split-bottom">
       <div class="chat-half-hd">
@@ -1648,7 +1684,7 @@ document.addEventListener('click', e=>{
     return;
   }
   if(b.dataset.viewreason) return push({screen:'reasoning', id:b.dataset.viewreason});
-  if(b.dataset.closechat){ ensureChat(b.dataset.closechat).splitHidden=true; return render(); }
+  if(b.dataset.closechat) return closeChatSheet(b.dataset.closechat);
   if(b.dataset.newchat!=null) return startNewChat();
   if(b.dataset.conv) return push({screen:'conv', convId:b.dataset.conv});
   if(b.dataset.approve!=null) return decide(top.id, +b.dataset.approve, 'approve');
@@ -1696,13 +1732,18 @@ document.addEventListener('pointerdown', e=>{
     startY:e.clientY,
     startPct:(topRect.height/containerRect.height)*100,
     containerHeight:containerRect.height,
-    topEl
+    topEl,
+    samples:[{t:performance.now(), y:e.clientY}]
   };
-  grabber.setPointerCapture(e.pointerId);
+  topEl.style.transition='none'; // follow the finger directly while dragging
+  try{ grabber.setPointerCapture(e.pointerId); }catch(_){}
   e.preventDefault();
 });
 document.addEventListener('pointermove', e=>{
   if(!splitDrag) return;
+  const now=performance.now();
+  splitDrag.samples.push({t:now, y:e.clientY});
+  while(splitDrag.samples.length>1 && now-splitDrag.samples[0].t>120) splitDrag.samples.shift();
   const dyPct=(e.clientY-splitDrag.startY)/splitDrag.containerHeight*100;
   // Top can shrink all the way to 0 (chat takes the whole screen), but
   // can't grow past the chat's own starting 50% — dragging down gives
@@ -1712,10 +1753,22 @@ document.addEventListener('pointermove', e=>{
   splitDrag.topEl.style.flex=`0 0 ${pct}%`;
   splitDrag.lastPct=pct;
 });
-function endSplitDrag(){
+function endSplitDrag(e){
   if(!splitDrag) return;
-  if(splitDrag.lastPct!=null) ensureChat(splitDrag.id).splitPct=splitDrag.lastPct;
-  splitDrag=null;
+  const d=splitDrag; splitDrag=null;
+  const chat=ensureChat(d.id);
+  let pct=d.lastPct!=null?d.lastPct:d.startPct;
+  // Flick detection: velocity over the last ~120ms of the gesture. A quick
+  // swipe up sends the chat to the top (reference pane fully collapsed); a
+  // quick swipe down brings it back to the half-and-half default.
+  const first=d.samples[0], last=d.samples[d.samples.length-1];
+  const dt=Math.max(1,last.t-first.t), v=(last.y-first.y)/dt; // px per ms, negative = up
+  const FLICK=0.45;
+  if(v<-FLICK) pct=0;
+  else if(v>FLICK) pct=50;
+  chat.splitPct=pct;
+  const cur=splitCurrentPct(d.topEl);
+  if(cur!=null) animateSplitTo(d.topEl, cur, pct);
 }
 document.addEventListener('pointerup', endSplitDrag);
 document.addEventListener('pointercancel', endSplitDrag);
