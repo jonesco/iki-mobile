@@ -1942,7 +1942,7 @@ function openInvestigation(id){
   renderAll();
 }
 function openConv(id){ leaveInvestigationSession(); state.activeConv=state.convs.find(c=>c.id===id); state.sideOpen=false; state.scrollToBottom=true; renderAll(); }
-function newChat(){ leaveInvestigationSession(); state.activeConv=null; state.sideOpen=false; state.activityOpen=false; state.workspaceOpen=false; renderAll(); $('input').focus(); }
+function newChat(opts){ leaveInvestigationSession(); state.activeConv=null; state.sideOpen=false; state.activityOpen=false; state.workspaceOpen=false; renderAll(); if(!(opts&&opts.noFocus)) $('input').focus(); }
 
 function decide(idx, dec){
   const conv=state.activeConv, i=inv(conv.invId), st=state.invStatus[i.id], step=i.steps[idx];
@@ -2129,7 +2129,7 @@ document.addEventListener('click',(e)=>{
   if(b.dataset.inv) return openInvestigation(b.dataset.inv);
   if(b.dataset.conv) return openConv(b.dataset.conv);
   if(b.id==='newChat') return newChat();
-  if(b.dataset.railnav==='home') return newChat();
+  if(b.dataset.railnav==='home'){ newChat({noFocus:true}); return b.blur(); }
   if(b.id==='sideClose'){ state.sideOpen=false; return renderSide(); }
   if(b.dataset.tab){ state.sideTab=b.dataset.tab; return renderSide(); }
   if(b.dataset.approve!=null) return decide(+b.dataset.approve,'approve');
