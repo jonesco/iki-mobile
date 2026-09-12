@@ -1679,15 +1679,23 @@ function renderRail(){
     {key:'tool', cls:'tool', label:'Tool approval', icon:ICON.pause},
     {key:'rem', cls:'rem', label:'Remediation approval', icon:ICON.pause},
     {key:'input', cls:'input', label:'Needs input', icon:ICON.ask},
-    {key:'progress', cls:'reanalyzing', label:'In progress', icon:ICON.spinner.replace(' spin','')},
+    {key:'Initially analyzed', cls:'watch', label:'Initially analyzed', icon:ICON.eye},
+    {key:'Causes identified', cls:'watch', label:'Causes identified', icon:ICON.chart},
+    {key:'Remediation created', cls:'watch', label:'Remediation created', icon:ICON.rem},
     {key:'resolved', cls:'closed', label:'Resolved', icon:ICON.check},
     {key:'dismissed', cls:'closed', label:'Dismissed', icon:ICON.x}
   ];
+  // Everything not waiting on a person files under its pipeline stage, the
+  // same taxonomy as the table's Stage column, rather than a churny
+  // "in progress" bucket.
   const tileKey=(i,need)=>{
     if(i.dismissed) return 'dismissed';
     if(need.cls==='tool'||need.cls==='rem'||need.cls==='input') return need.cls;
     if(need.cls==='closed'||(i.passive&&i.stage==='Resolved')) return 'resolved';
-    return 'progress';
+    if(i.passive) return i.stage;
+    const st=state.invStatus[i.id];
+    if(st.stepIdx>0){ const done=i.steps[st.stepIdx-1]; return done&&done.type==='remediation'?'Remediation created':'Causes identified'; }
+    return STAGE_MAP[need.cls]||'Initially analyzed';
   };
   const all=INVESTIGATIONS.map(i=>({i,need:needFor(i)})).sort((a,b)=>(a.i.updatedMin||0)-(b.i.updatedMin||0));
   const activeId=state.activeConv&&state.activeConv.invId;
@@ -1697,7 +1705,7 @@ function renderRail(){
     const items=all.filter(r=>tileKey(r.i,r.need)===t.key); if(!items.length) return '';
     const hasActive=items.some(r=>r.i.id===activeId);
     const open=hasActive||!!state.tilesOpen[t.key];
-    const showNeed=t.key==='progress'||t.key==='dismissed';
+    const showNeed=t.key==='dismissed'||t.cls==='watch';
     return `<div class="tile ${open?'open':''} ${hasActive?'has-active':''}" data-tilekey="${t.key}">
       <button class="tile-hd" data-tile="${t.key}" aria-expanded="${open}"><span class="need-badge ${t.cls}">${t.icon}</span><span class="tile-t">${t.label}</span><span class="tile-n">${items.length}</span><svg class="icon chev" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button>
       <div class="tile-body">${items.map(({i,need})=>`<button class="inv ${i.id===activeId?'active':''}" data-inv="${i.id}">
