@@ -1,5 +1,9 @@
 # iki-mobile
 
-Public mirror of the mobile prototype from the private `iki` repo, served with GitHub Pages.
+Public GitHub Pages mirror of the prototypes in the private `jonesco/iki` repo.
 
-Source of truth: `noc-chat-ui/index-mobile.html` in `jonesco/iki`. Copy it here as `index.html` and push to update.
+- `index.html` — cover page (pick desktop or mobile)
+- `desktop.html` — desktop prototype
+- `mobile.html` — mobile prototype
+
+Do not edit here. Source of truth is `noc-chat-ui/` in `jonesco/iki`; run its `publish-pages.sh` to update this mirror.
