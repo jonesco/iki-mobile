@@ -486,9 +486,6 @@
     <button class="rail-button" type="button" data-railnav="home" data-tip="Dashboard" aria-label="Dashboard">
       <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5"></path><path d="M6.5 9.5V20h11V9.5"></path></svg>
     </button>
-    <button class="rail-button" type="button" data-railnav="inv" data-tip="Investigations" aria-label="Investigations">
-      <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18v-2"></path><path d="M8.5 20h7"></path><path d="M8 14a4 4 0 1 1 8 0c0 1.1-.52 2.13-1.4 2.8L14 18h-4l-.6-1.2A4.02 4.02 0 0 1 8 14Z"></path></svg>
-    </button>
     <button class="rail-button" type="button" data-tip="Devices" aria-label="Devices">
       <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v6H4z"></path><path d="M4 14h16v4H4z"></path><path d="M7 9h.01"></path><path d="M7 17h.01"></path></svg>
     </button>
@@ -2116,17 +2113,11 @@ function renderActivity(){
   $('actStages').innerHTML=data.stages.map(s=>`<li><button class="${s.v>0?'has-v':''}" data-start="${esc(s.q)}"><span class="act-stage-icon">${s.icon}</span><span class="act-stage-label">${esc(s.label)}</span><span class="act-stage-v">${s.v}</span></button></li>`).join('');
 }
 function renderAll(){ renderRail(); renderChat(); renderSide(); renderActivity(); renderCornerFab(); renderLeftRail(); }
-/* Icon rail: "Dashboard" is this page's home (blank chat); "Investigations"
-   is the table view and stays lit while an investigation is open. */
+/* Icon rail: "Dashboard" is this page, so it stays lit; clicking it returns
+   to the blank home view. The other icons are placeholders. */
 function renderLeftRail(){
-  const conv=state.activeConv;
-  const invUp=(state.workspaceOpen&&state.workspaceType!=='rec')||!!(conv&&conv.invId&&!state.workspaceOpen);
-  const homeUp=!conv&&!state.workspaceOpen;
-  document.querySelectorAll('#leftRail [data-railnav]').forEach(b=>{
-    const on=b.dataset.railnav==='home'?homeUp:invUp;
-    b.classList.toggle('is-active', on);
-    if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current');
-  });
+  const b=document.querySelector('#leftRail [data-railnav="home"]'); if(!b) return;
+  b.classList.add('is-active'); b.setAttribute('aria-current','page');
 }
 function autosize(){ const ta=$('input'); ta.style.height='auto'; ta.style.height=Math.min(160,ta.scrollHeight)+'px'; }
 
@@ -2139,7 +2130,6 @@ document.addEventListener('click',(e)=>{
   if(b.dataset.conv) return openConv(b.dataset.conv);
   if(b.id==='newChat') return newChat();
   if(b.dataset.railnav==='home') return newChat();
-  if(b.dataset.railnav==='inv'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; return renderAll(); }
   if(b.id==='sideClose'){ state.sideOpen=false; return renderSide(); }
   if(b.dataset.tab){ state.sideTab=b.dataset.tab; return renderSide(); }
   if(b.dataset.approve!=null) return decide(+b.dataset.approve,'approve');
