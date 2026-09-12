@@ -745,7 +745,9 @@
   .observations-subhead{font-size:11px;font-weight:600;margin-top:6px}
   .observations-subhead .metrics,.observations-subhead .alarms{color:var(--text-helper)}
   .symptoms-col-th{font-size:12px;font-weight:600;color:var(--text-helper)}
-  .symptoms-col-label{min-inline-size:0}
+  .symptoms-col-label{min-inline-size:0;white-space:normal;align-items:flex-start;line-height:16px}
+  .observations-subhead .table-icon,.symptoms-col-th .table-icon{display:none}
+  .observations-subhead{gap:4px}
   .investigations-table tbody td{padding:10px 12px;font-size:14px;line-height:1.35;color:var(--text-secondary);background:transparent;border-top:0;border-bottom:1px solid var(--border-subtle);border-right:0}
   .investigations-table tbody tr:hover td{background:var(--layer-hover)}
   .ticket-cell{gap:6px}
@@ -990,13 +992,13 @@
               <table class="investigations-table">
                 <thead>
                   <tr>
-                    <th style="width: 25%;">Ticket</th>
+                    <th style="width: 27%;">Ticket</th>
                     <th style="width: 12%;">Device name</th>
                     <th style="width: 12%;" id="dateRangeColHeader"><span class="sort-col-label">Event date range <svg class="sort-col-arrow" id="dateRangeSortArrow" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10"/><path d="m4 9 4 4 4-4"/></svg></span></th>
                     <th style="width: 12%;" class="sort-col-th" id="lastActivityColHeader"><span class="sort-col-label">Last activity <svg class="sort-col-arrow" id="updatedSortArrow" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10"/><path d="m4 9 4 4 4-4"/></svg></span></th>
-                    <th style="width: 12%;" id="stageColHeader">Stage</th>
-                    <th class="symptoms-col-th" style="width: 10%;"><span class="symptoms-col-label"><svg class="table-icon" viewBox="0 0 32 32" fill="currentColor" stroke="none" aria-hidden="true"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12z"></path><path d="M16 8a8 8 0 1 0 8 8 8 8 0 0 0-8-8zm0 14a6 6 0 1 1 6-6 6 6 0 0 1-6 6z"></path><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"></path></svg> Symptoms</span></th>
-                    <th class="observations-group" colspan="3" style="width: 24%;">
+                    <th style="width: 13%;" id="stageColHeader">Stage</th>
+                    <th class="symptoms-col-th" style="width: 8%;"><span class="symptoms-col-label"><svg class="table-icon" viewBox="0 0 32 32" fill="currentColor" stroke="none" aria-hidden="true"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12z"></path><path d="M16 8a8 8 0 1 0 8 8 8 8 0 0 0-8-8zm0 14a6 6 0 1 1 6-6 6 6 0 0 1-6 6z"></path><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"></path></svg> Symptoms</span></th>
+                    <th class="observations-group" colspan="3" style="width: 16%;">
                       <div>Observations</div>
                       <div class="observations-subhead" style="grid-template-columns: 1fr 1fr 1fr;">
                         <span class="metrics"><svg class="table-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16V8"></path><path d="M10 16V11"></path><path d="M15 16V6"></path><path d="M20 16v-4"></path></svg> Metric</span>
