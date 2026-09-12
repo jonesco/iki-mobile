@@ -713,6 +713,48 @@
 .mini-cal__day--selected{background: #0f62fe; color: #ffffff;}
 .mini-cal__day:disabled{color: #4d4d4d; cursor: not-allowed;}
 .timeframe-slider__thumb-label{position: absolute; inset-block-start: -1.5rem; inset-inline-start: 50%; transform: translateX(-50%); padding: 2px 6px; background: rgba(38, 38, 38, 0.96); border: 1px solid rgba(255, 255, 255, 0.12); color: #f4f4f4; font-size: 0.6875rem; white-space: nowrap; pointer-events: none;}
+
+  /* ---- size/colour overrides so the ported table matches this page's type scale ---- */
+  .inv-ws .page-header-band{padding:16px 24px 0;background:transparent}
+  .inv-ws .page-title{font-size:20px;line-height:28px;font-weight:400;letter-spacing:0}
+  .inv-ws .content{padding:0 24px 24px}
+  .inv-ws .table-shell{margin-top:12px;border:1px solid var(--border-subtle);background:transparent}
+  .table-toolbar{min-height:48px;background:var(--layer-01);border-bottom-color:var(--border-subtle)}
+  .toolbar-filter{border-right-color:var(--border-subtle)}
+  .toolbar-filter__trigger{font-size:14px;padding:0 12px;gap:8px}
+  .toolbar-filter__trigger-label{gap:8px}
+  .toolbar-filter__chevron{inline-size:16px;block-size:16px;stroke:var(--text-secondary)}
+  .toolbar-filter__menu{min-inline-size:14rem;padding:4px 0;background:var(--layer-02);border-color:var(--border-subtle)}
+  .toolbar-filter__option{font-size:13px;min-height:36px;padding:0 12px}
+  .toolbar-filter__option-count{font-size:11px}
+  .date-range-quickpick__menu .toolbar-filter__option{font-size:13px;padding:8px 12px}
+  .toolbar-search{padding:0 12px;gap:8px;border-right-color:var(--border-subtle)}
+  .toolbar-search input{font-size:14px}
+  .toolbar-icon{inline-size:16px;block-size:16px}
+  .stage-date-range{padding:0 12px;border-right-color:var(--border-subtle)}
+  .date-range-selector__metric{font-size:14px}
+  .date-range-selector__icon{inline-size:14px;block-size:14px}
+  .toolbar-actions{color:var(--text-helper)}
+  .investigations-table thead th{padding:10px 12px;font-size:12px;letter-spacing:.32px;text-transform:uppercase;font-weight:600;color:var(--text-helper);background:var(--bg);border-right:0;border-bottom:1px solid var(--border-subtle);vertical-align:bottom}
+  .investigations-table thead th.sort-col-th{background:var(--bg);color:var(--text-primary)}
+  .sort-col-arrow{color:var(--text-secondary)}
+  .observations-subhead{font-size:11px;font-weight:600;margin-top:6px}
+  .observations-subhead .metrics,.observations-subhead .alarms{color:var(--text-helper)}
+  .symptoms-col-th{font-size:12px;font-weight:600;color:var(--text-helper)}
+  .symptoms-col-label{min-inline-size:0}
+  .investigations-table tbody td{padding:10px 12px;font-size:14px;line-height:1.35;color:var(--text-secondary);background:transparent;border-top:0;border-bottom:1px solid var(--border-subtle);border-right:0}
+  .investigations-table tbody tr:hover td{background:var(--layer-hover)}
+  .ticket-cell{gap:6px}
+  .ticket-headline{font-size:14px;color:var(--text-primary)}
+  .ticket-pill{font-family:var(--mono);font-size:11px;min-height:18px;padding:0 8px;background:var(--tag-gray-bg);color:var(--tag-gray-fg)}
+  .stage-text,.count-cell{font-size:14px}
+  .copy-device-btn{width:24px;height:24px}
+  .table-footer{font-size:12px;min-height:40px;grid-template-columns:auto 1fr auto auto auto;background:var(--layer-01);border-top-color:var(--border-subtle)}
+  .footer-cell{padding:0 12px;gap:6px;border-right-color:var(--border-subtle)}
+  .footer-cell--page{min-width:0}
+  .pagination-button{inline-size:40px}
+  .table-empty-state{padding:48px 24px}
+  .table-empty-state__title{font-size:14px} .table-empty-state__sub{font-size:13px}
 </style>
 
 <header class="hdr">
@@ -877,9 +919,7 @@
         <div class="page-header-band">
           <header class="page-header">
             <h1 class="page-title">Investigations</h1>
-            <p class="page-subtitle">Summary of autonomous investigations, detailing detected issues, their analysis, and progress toward resolution.</p>
           </header>
-          <button class="circle-x" id="invWsClose" aria-label="Close table view"><svg class="icon" viewBox="0 0 16 16"><path d="M12 4.7l-.7-.7L8 7.3 4.7 4l-.7.7L7.3 8 4 11.3l.7.7L8 8.7l3.3 3.3.7-.7L8.7 8z"/></svg></button>
         </div>
         <div class="content">
           <section class="table-shell" aria-label="Investigations" id="investigationsTableShell">
@@ -2607,7 +2647,7 @@ document.addEventListener('click',(e)=>{
   }
   if(b.dataset.acttab){ state.actTab=b.dataset.acttab; return renderActivity(); }
   if(b.dataset.collapse!=null) return b.closest('.rail-section').classList.toggle('collapsed');
-  if(b.id==='wsClose'||b.id==='invWsClose'){ state.workspaceOpen=false; return renderAll(); }
+  if(b.id==='wsClose'){ state.workspaceOpen=false; return renderAll(); }
   if(b.id==='fabSide'){ state.sideOpen=true; return renderSide(); }
   if(b.id==='fabChat'){
     state.sideOpen=true; state.sideTab='chat'; renderSide();
@@ -2646,6 +2686,7 @@ $('input').addEventListener('input',autosize);
 document.addEventListener('keydown',(e)=>{
   if(e.key==='Enter'&&e.target.classList.contains('qinput')){ e.preventDefault(); answerQuestion(+e.target.id.replace('qinput-','')); }
   if(e.key==='Escape'&&contribCtx) closeContribute();
+  else if(e.key==='Escape'&&state.workspaceOpen&&$('timeframeModal').hidden&&!document.querySelector('.toolbar-filter.is-open, .date-range-quickpick.is-open')){ state.workspaceOpen=false; renderAll(); }
 });
 $('contribModal').addEventListener('click',(e)=>{ if(e.target===$('contribModal')) closeContribute(); });
 $('sideChatInput').addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sideSend(e.target.value); } });
