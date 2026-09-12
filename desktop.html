@@ -44,7 +44,7 @@
   .icon{width:16px;height:16px;fill:currentColor;flex:none}
 
   /* ---------- App shell ---------- */
-  .app{position:relative;display:grid;grid-template-columns:var(--rail-w) 1fr 0;height:100vh;transition:grid-template-columns .24s cubic-bezier(.2,0,.38,.9)}
+  .app{position:relative;display:grid;grid-template-columns:var(--rail-w) 1fr 0;height:100vh;overflow:hidden;transition:grid-template-columns .24s cubic-bezier(.2,0,.38,.9)}
   .app.side-open{grid-template-columns:var(--rail-w) 1fr var(--side-w)}
   .app.rail-collapsed{grid-template-columns:0 1fr 0}
   .app.rail-collapsed.side-open{grid-template-columns:0 1fr var(--side-w)}
@@ -2113,7 +2113,15 @@ document.addEventListener('click',(e)=>{
   if(b.dataset.collapse!=null) return b.closest('.rail-section').classList.toggle('collapsed');
   if(b.id==='wsClose'){ state.workspaceOpen=false; return renderAll(); }
   if(b.id==='fabSide'){ state.sideOpen=true; return renderSide(); }
-  if(b.id==='fabChat'){ state.sideOpen=true; state.sideTab='chat'; renderSide(); return $('sideChatInput').focus(); }
+  if(b.id==='fabChat'){
+    state.sideOpen=true; state.sideTab='chat'; renderSide();
+    // Focus only after the sidebar has finished animating in, and never let
+    // focus() scroll the app: focusing the input while its column is still
+    // growing scrolled the whole layout sideways, which read as the rail
+    // sliding out and back.
+    setTimeout(()=>$('sideChatInput').focus({preventScroll:true}), 260);
+    return;
+  }
   if(b.id==='railToggle'){ state.railOpen=false; $('app').classList.add('rail-collapsed'); $('fabRail').classList.add('show'); return; }
   if(b.id==='fabRail'){ state.railOpen=true; $('app').classList.remove('rail-collapsed'); $('fabRail').classList.remove('show'); return; }
   if(b.dataset.openreasoning) return openReasoningTab();
