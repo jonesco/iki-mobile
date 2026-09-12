@@ -1,0 +1,1724 @@
+<title>IBM Network Intelligence — Mobile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#161616; --layer-01:#262626; --layer-02:#393939; --layer-03:#525252;
+    --layer-hover:#333333; --layer-hover-02:#474747;
+    --field:#262626; --border-subtle:#393939; --border-strong:#6f6f6f;
+    --text-primary:#f4f4f4; --text-secondary:#c6c6c6; --text-placeholder:#6f6f6f; --text-helper:#8d8d8d;
+    --interactive:#4589ff; --link:#78a9ff; --btn-primary:#0f62fe; --btn-primary-hover:#0353e9; --btn-secondary:#6f6f6f; --btn-secondary-hover:#606060;
+    --focus:#ffffff;
+    --sup-error:#fa4d56; --sup-warning:#f1c21b; --sup-success:#42be65; --sup-info:#4589ff;
+    --tag-gray-bg:#525252; --tag-gray-fg:#e0e0e0;
+    --chart-2:#33b1ff; --chart-4:#ff7eb6; --chart-5:#fa4d56;
+    --magenta:#d02670; --purple:#8a3ffc;
+    --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text-primary);font:14px/1.43 var(--sans);letter-spacing:.16px;display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+  button{font:inherit;letter-spacing:inherit;cursor:pointer;color:inherit}
+  button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+  ::-webkit-scrollbar{display:none}
+  .icon{width:16px;height:16px;fill:currentColor;flex:none}
+  .mono{font-family:var(--mono)}
+  .tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;font-size:12px;line-height:16px;letter-spacing:.32px;border-radius:12px;white-space:nowrap}
+  .tag-gray{background:var(--tag-gray-bg);color:var(--tag-gray-fg)}
+  .btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;height:44px;padding:0 16px;border:1px solid transparent;font-size:14px;line-height:18px;white-space:nowrap}
+  .btn svg{width:16px;height:16px;fill:currentColor}
+  .btn-primary{background:var(--btn-primary);color:#fff}
+  .btn-secondary{background:var(--btn-secondary);color:#fff}
+
+  /* ---------- app shell ---------- */
+  .ibm-hdr{flex:none;height:44px;background:var(--bg);border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;padding:0 16px;gap:8px}
+  .ibm-hdr .icon{width:16px;height:16px;fill:currentColor;flex:none}
+  .ibm-hdr .brand{font-weight:400;font-size:14px;letter-spacing:.16px}
+  .ibm-hdr .brand b{font-weight:600;margin-right:6px}
+  .ibm-hdr .spacer{flex:1}
+  .ibm-hdr .avatar{width:28px;height:28px;border-radius:50%;background:var(--layer-02);display:grid;place-items:center;font-size:11px;letter-spacing:.32px;flex:none}
+  .topbar{flex:none;min-height:52px;background:var(--bg);border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;gap:4px;padding:0 4px}
+  .topbar.root{padding:0 16px}
+  .topbar .backbtn{width:44px;height:44px;border:0;background:transparent;color:var(--text-primary);display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .topbar .backbtn:active{background:var(--layer-hover)}
+  .topbar .ttl{font-size:15px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topbar.root .ttl{font-size:22px;font-weight:400}
+  #screen{flex:1;overflow-y:auto;min-height:0;padding-bottom:24px}
+  /* Once an investigation's own chat has started, #screen stops being
+     the scroll container itself — the reference (top) and chat (bottom)
+     halves each scroll on their own instead. */
+  #screen.is-split{overflow:hidden;padding-bottom:0;display:flex;flex-direction:column}
+  /* Grid rows (1fr 1fr), not flex-basis percentages — guarantees an
+     exact even split regardless of how much either side's content
+     needs; each half scrolls its own overflow instead of growing. */
+  /* Top's height is a live inline style (flex-basis %, set from
+     chat.splitPct and updated during drag) — flex, not grid, so the
+     grabber can sit as its own fixed-height row between the two panes
+     and the bottom pane just absorbs whatever's left. */
+  .detail-split{display:flex;flex-direction:column;height:100%;min-height:0}
+  .detail-split-top{min-height:0;overflow-y:auto}
+  /* Grabber + chat half read as one raised sheet: same surface, no seam
+     between them, and a shadow up along the top edge to lift it off the
+     page background behind the reference half. */
+  .split-grabber{flex:none;height:18px;display:flex;align-items:center;justify-content:center;cursor:ns-resize;touch-action:none;background:var(--layer-01);border-top:1px solid var(--border-subtle);position:relative;z-index:1;box-shadow:0 -10px 24px rgba(0,0,0,.55)}
+  .split-grabber::after{content:'';width:36px;height:4px;border-radius:2px;background:var(--border-strong)}
+  .detail-split-bottom{flex:1 1 auto;min-height:0;overflow-y:auto;background:var(--layer-01)}
+  .chat-half-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 8px 8px 16px}
+  .chat-half-hd span{font-size:12px;font-weight:600;letter-spacing:.32px;text-transform:uppercase;color:var(--text-helper)}
+  .chat-half-close{width:28px;height:28px;padding:0;background:transparent;border:0;color:var(--text-helper);display:grid;place-items:center;flex:none}
+  .chat-half-close:active{background:var(--layer-hover);color:var(--text-primary)}
+  .chat-half-close .icon{width:14px;height:14px}
+  /* Composer: an inset rounded box floating above the safe area (like the
+     Claude app), not a flat strip flush with the screen edge. 16px text
+     also stops iOS Safari from auto-zooming the page when it's focused. */
+  .inputbar{flex:none;padding:10px 12px calc(12px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--border-subtle)}
+  .inputbar .box{background:var(--layer-01);border:1px solid var(--border-strong);border-radius:24px;display:flex;align-items:flex-end;padding:6px 6px 6px 8px;min-height:56px}
+  .inputbar .box:focus-within{border-color:var(--text-secondary)}
+  .inputbar textarea{flex:1;background:transparent;border:0;color:var(--text-primary);font:16px/22px var(--sans);padding:10px 8px 10px 10px;resize:none;min-height:42px;max-height:132px;outline:none}
+  .inputbar textarea::placeholder{color:var(--text-placeholder)}
+  .inputbar button{width:42px;height:42px;border-radius:50%;background:var(--interactive);border:0;color:#000;display:grid;place-items:center;flex:none;margin:0}
+  .inputbar button:active{background:var(--btn-primary-hover);color:#fff}
+  .inputbar button .icon{width:18px;height:18px}
+  .tabbar{flex:none;display:flex;overflow:hidden;margin:0 16px calc(12px + env(safe-area-inset-bottom));border:1px solid var(--border-subtle);border-radius:999px;background:var(--layer-01);box-shadow:0 4px 16px rgba(0,0,0,.4)}
+  .tabbar[hidden]{display:none}
+  .tabbar button{flex:1;display:flex;align-items:center;justify-content:center;padding:15px 4px;background:transparent;border:0;color:var(--text-helper)}
+  .tabbar button .icon{width:22px;height:22px}
+  .tabbar button.on{color:var(--text-primary)}
+
+  /* ---------- lists ---------- */
+  .sechd{padding:16px 16px 8px;font-size:12px;font-weight:600;letter-spacing:.32px;text-transform:uppercase;color:var(--text-helper)}
+  .rail-empty{padding:24px 16px;color:var(--text-helper);font-size:13px;text-align:center}
+  .list{display:flex;flex-direction:column}
+  .lrow{display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--border-subtle);padding:14px 16px}
+  .lrow:active{background:var(--layer-hover)}
+  .lrow .title{font-size:15px;font-weight:600;margin-bottom:4px;line-height:1.35}
+  .lrow .meta{font-size:12px;color:var(--text-secondary);margin-bottom:8px}
+  .need{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)}
+  .need-badge{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;color:#000}
+  .need-badge .icon{width:11px;height:11px}
+  .need-badge.tool{background:var(--sup-warning)} .need-badge.rem{background:var(--sup-warning)} .need-badge.input{background:var(--magenta);color:#fff} .need-badge.recommend{background:var(--purple)} .need-badge.closed{background:var(--text-helper)} .need-badge.watch{background:var(--text-helper)} .need-badge.reanalyzing{background:transparent;color:var(--interactive)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .icon.spin{animation:spin 1s linear infinite;transform-origin:50% 50%}
+  .filter-seg{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px}
+  .filter-seg button{height:30px;padding:0 12px;font-size:12px;letter-spacing:.16px;background:transparent;border:1px solid var(--border-subtle);color:var(--text-secondary);border-radius:15px}
+  .filter-seg button.on{background:#fff;color:#000;border-color:#fff}
+  .rowbtn{display:flex;align-items:center;gap:10px;width:100%;background:var(--layer-01);border:0;border-bottom:1px solid var(--border-subtle);padding:15px 16px;color:var(--text-primary);font-size:14px;text-align:left}
+  .rowbtn:active{background:var(--layer-hover)}
+  .rowbtn .lead{color:var(--text-helper)}
+  .rowbtn .t{flex:1;font-weight:600}
+  .rowbtn .chev{color:var(--text-helper)}
+
+  /* ---------- brief / status ---------- */
+  .brief{border-bottom:8px solid var(--layer-01)}
+  /* No background of its own — same treatment .appr already gets inside
+     the feed: its own border+layer-01 fill reads as a floating card
+     against the screen's dark background, which is what actually
+     separates it from .brief above (a shared background would just
+     make the two blend together). */
+  .next-step-card{padding:16px}
+  .next-step-card .brief-sec-hd{margin-bottom:8px}
+  .status-band{padding:16px;border-left:3px solid var(--border-strong);background:var(--layer-01)}
+  .status-band .status-label{display:flex;align-items:center;gap:6px;font-size:12px;letter-spacing:.32px;text-transform:uppercase;color:var(--text-helper);margin-bottom:6px}
+  .status-band .status-label .icon{width:14px;height:14px}
+  .status-band .status-headline{font-size:17px;font-weight:600;line-height:1.35}
+  .status-band.tool{border-left-color:var(--sup-warning)} .status-band.rem{border-left-color:var(--sup-warning)}
+  .status-band.input{border-left-color:var(--magenta)} .status-band.recommend{border-left-color:var(--purple)}
+  .status-band.closed{border-left-color:var(--text-helper)} .status-band.watch{border-left-color:var(--text-helper)}
+  .status-band.reanalyzing{border-left-color:var(--interactive)} .status-band.none{border-left-color:var(--text-helper)}
+  .facts{display:grid;grid-template-columns:1fr 1fr;background:var(--layer-01);border-top:1px solid var(--border-subtle)}
+  .fact{padding:12px 16px;border-right:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle)}
+  .fact:nth-child(2n){border-right:0}
+  .fact .v{font-size:19px;line-height:26px;font-variant-numeric:tabular-nums}
+  .fact .v.bad{color:var(--sup-error)} .fact .v.warn{color:var(--sup-warning)} .fact .v.ok{color:var(--sup-success)}
+  .fact .l{font-size:11px;color:var(--text-helper);letter-spacing:.32px}
+  .brief-section{padding:16px;background:var(--layer-01);border-top:1px solid var(--border-subtle)}
+  .brief-sec-hd{font-size:12px;font-weight:600;letter-spacing:.32px;text-transform:uppercase;color:var(--text-helper);margin-bottom:6px}
+  .brief-section p{margin:0;color:var(--text-secondary)}
+  .indicators{margin:0;padding-left:18px;color:var(--text-secondary)}
+  .indicators li{margin:5px 0}
+
+  /* ---------- feed / approval cards ---------- */
+  .feed{padding:16px;display:flex;flex-direction:column;gap:14px}
+  .msg.assist .content p{margin:0 0 8px} .msg.assist .content p:last-child{margin-bottom:0}
+  .msg.assist .content ul{margin:4px 0 8px;padding-left:18px} .msg.assist .content li{margin:2px 0}
+  .msg.assist .content .k{color:var(--text-secondary)}
+  .msg.user{display:flex;justify-content:flex-end}
+  .msg.user .bubble{max-width:84%;background:#fff;color:#161616;padding:10px 14px;border-radius:2px}
+  .msg.user .bubble p{margin:0}
+  .inline-link{background:none;border:0;padding:0;margin:0;font:inherit;color:var(--link);cursor:pointer;text-decoration:underline}
+  .appr{border:1px solid var(--border-subtle);background:var(--layer-01)}
+  .appr .hd{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border-subtle)}
+  .appr .hd .icon{color:var(--link)} .appr.rem .hd .icon{color:var(--sup-warning)} .appr.question .hd .icon{color:var(--text-secondary)} .appr.recommend .hd .icon{color:var(--purple)} .appr.info .hd .icon{color:var(--text-helper)}
+  .appr .hd .t{font-weight:600;flex:1;font-size:13px}
+  .appr .bd{padding:12px 14px;display:grid;gap:10px}
+  .appr .row{display:grid;grid-template-columns:1fr;gap:2px;font-size:13px}
+  .appr .row .k{color:var(--text-helper);font-size:11px;letter-spacing:.32px}
+  code,.cmd{font-family:var(--mono);font-size:12.5px;background:var(--bg);border:1px solid var(--border-subtle);padding:2px 6px}
+  .cmd{display:block;padding:8px 10px;white-space:pre-wrap;word-break:break-word;line-height:1.5}
+  .appr .ft-input{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border-subtle)}
+  .appr .ft-input .qinput{flex:1;height:40px;background:var(--field);border:0;border-bottom:1px solid var(--border-strong);color:var(--text-primary);padding:0 8px;font:14px var(--sans)}
+  .appr .ft{display:flex;flex-direction:column;border-top:1px solid var(--border-subtle)}
+  .appr .ft .btn{justify-content:center;height:48px}
+  .appr .decided{padding:12px 14px;border-top:1px solid var(--border-subtle);display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary)}
+  .appr .decided .icon{color:var(--sup-success)} .appr .decided.no .icon{color:var(--sup-error)}
+  .tool-out{border:1px solid var(--border-subtle);background:var(--bg)}
+  .tool-out .hd{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:12px;color:var(--text-secondary);border-bottom:1px solid var(--border-subtle);font-family:var(--mono)}
+  .tool-out pre{margin:0;padding:10px;font:11.5px/1.55 var(--mono);color:var(--text-secondary);overflow-x:auto;white-space:pre}
+  .tool-out pre .hl{color:var(--sup-warning)} .tool-out pre .bad{color:var(--sup-error)} .tool-out pre .ok{color:var(--sup-success)}
+  .typing{display:inline-flex;gap:4px;padding:8px 0}.typing i{width:6px;height:6px;border-radius:50%;background:var(--text-helper);animation:blink 1s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  .reanalyzing-row{display:flex;align-items:center;gap:8px;padding:4px 0;color:var(--interactive);font-size:13px}
+  .reanalyzing-row .icon{width:15px;height:15px}
+  @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+  /* ---------- observations / kv / chart ---------- */
+  .embed{border:1px solid var(--border-subtle);background:var(--layer-01)}
+  .embed .hd{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border-subtle)}
+  .embed .hd .t{font-weight:600;flex:1;font-size:13px}
+  .embed .bd{padding:12px}
+  .chart{width:100%;height:auto;display:block}
+  .chart text{font-family:var(--mono);font-size:10px;fill:var(--text-helper)}
+  .chart .grid{stroke:var(--border-subtle);stroke-width:1}
+  .chart .axis{stroke:var(--border-strong)}
+  .chart .thr{stroke:var(--sup-error);stroke-dasharray:3 3;stroke-width:1}
+  .chart .end{font-weight:500;fill:var(--text-primary)}
+  .chart-cap{display:flex;justify-content:space-between;font-size:12px;color:var(--text-helper);margin-top:6px;font-variant-numeric:tabular-nums}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px;margin:0}
+  .kv dt{color:var(--text-helper);font-size:12px;letter-spacing:.32px;padding-top:1px;white-space:nowrap} .kv dd{margin:0;font-family:var(--mono);font-size:12px;overflow-wrap:anywhere}
+  .kv dd.bad{color:var(--sup-error)} .kv dd.warn{color:var(--sup-warning)} .kv dd.ok{color:var(--sup-success)}
+
+  /* ---------- accordion Q&A ---------- */
+  .acc-list{border-top:1px solid var(--border-subtle)}
+  .acc{border-bottom:1px solid var(--border-subtle)}
+  .acc-q{display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:0;padding:13px 16px;color:var(--link);font-size:13px;text-align:left}
+  .acc-q:active{background:var(--layer-hover)}
+
+  /* ---------- topology ---------- */
+  .topo{padding:16px}
+  .topo svg{width:100%;height:auto;display:block;overflow:visible}
+  .topo-label{fill:var(--text-primary);font:600 12px var(--sans)}
+  .topo-sub{fill:var(--text-helper);font:11px var(--sans)}
+  .topo-tag{fill:var(--text-helper);font:10px var(--mono);letter-spacing:.3px}
+  .topo-site{fill:none;stroke:var(--border-subtle);stroke-dasharray:3 3}
+  .topo-site-label{fill:var(--text-helper);font:600 10px var(--sans);letter-spacing:.48px;text-transform:uppercase}
+
+  /* ---------- autonomous activity ---------- */
+  .act-toprow{padding:12px 16px 0}
+  /* Custom, not a native <select> — the native popup is OS/browser
+     chrome, not page content, so in Chrome's device emulation it renders
+     relative to the real window instead of the simulated phone (and on
+     a real phone it'd still be an unthemed native picker, out of place
+     next to everything else here being custom-styled). */
+  .act-period-wrap{position:relative}
+  .act-period-btn{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--layer-01);border:1px solid var(--border-subtle);color:var(--text-primary);font:14px var(--sans);height:40px;padding:0 10px}
+  .act-period-btn .icon{width:14px;height:14px;color:var(--text-helper)}
+  .act-period-menu{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:20;background:var(--layer-02);border:1px solid var(--border-subtle);box-shadow:0 4px 16px rgba(0,0,0,.4)}
+  .act-period-menu[hidden]{display:none}
+  .act-period-opt{display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--border-subtle);padding:11px 12px;color:var(--text-primary);font:14px var(--sans)}
+  .act-period-opt:last-child{border-bottom:0}
+  .act-period-opt:active{background:var(--layer-hover)}
+  .act-period-opt.on{color:var(--interactive);font-weight:600}
+  .act-card{border:1px solid var(--border-subtle);background:var(--layer-01);padding:16px;margin:12px 16px}
+  .act-card-hd{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+  .act-title{font-size:12px;font-weight:600;letter-spacing:.32px;text-transform:uppercase;color:var(--text-helper)}
+  .act-toggle{display:flex;gap:8px;margin-left:auto}
+  .act-toggle button{height:30px;padding:0 10px;background:transparent;border:1px solid var(--border-subtle);color:var(--text-secondary);font-size:12px}
+  .act-toggle button.on{background:var(--layer-02);color:var(--text-primary);border-color:var(--layer-02)}
+  .act-big{font-size:20px;font-variant-numeric:tabular-nums;font-weight:600;background:var(--sup-success);color:#06210e;min-width:20px;text-align:center;line-height:32px;padding:0 12px}
+  .act-big.dismissed{background:var(--sup-error);color:#fff}
+  .act-stages{list-style:none;margin:0;padding:0;display:grid;gap:1px;background:var(--border-subtle);border:1px solid var(--border-subtle)}
+  .act-stages button{display:flex;align-items:center;gap:10px;width:100%;background:var(--bg);border:0;padding:12px;color:var(--text-placeholder);text-align:left}
+  .act-stages button.has-v{color:var(--text-primary)}
+  .act-stages .act-stage-icon{width:16px;height:16px;display:grid;place-items:center;flex:none}
+  .act-stages .act-stage-icon .icon{width:14px;height:14px}
+  .act-stages .act-stage-label{flex:1;font-size:13px}
+  .act-stages .act-stage-v{font-size:16px;font-variant-numeric:tabular-nums;color:var(--text-secondary);flex:none}
+  .act-stages button.has-v .act-stage-v{color:var(--text-primary);font-weight:600}
+  .act-rows{display:flex;flex-direction:column}
+  .act-row{display:flex;align-items:baseline;justify-content:space-between;width:100%;background:transparent;border:0;border-top:1px solid var(--border-subtle);padding:12px 4px;color:inherit;text-align:left}
+  .act-row:first-child{border-top:0}
+  .act-row-label{font-size:13px;color:var(--text-secondary)}
+  .act-row-right{text-align:right;display:flex;flex-direction:column;gap:2px}
+  .act-row-pct{font-size:12px;color:var(--text-helper)} .act-row-pct.good{color:var(--sup-success)}
+  .act-row-v{font-size:18px;font-variant-numeric:tabular-nums;color:var(--text-primary)}
+  .act-row-v.mono{font-family:var(--mono);font-size:15px}
+  .act-donut-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .act-donut-box{position:relative;width:88px;height:88px;flex:none}
+  .act-donut{width:88px;height:88px}
+  .act-donut-total{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .act-donut-total b{font-size:19px;line-height:22px;font-weight:600}
+  .act-donut-total span{font-size:9px;color:var(--text-helper)}
+  .act-legend{list-style:none;margin:0;padding:0;flex:1;min-width:140px;display:grid;gap:2px}
+  .act-legend button{display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:0;padding:8px;font-size:13px;color:var(--text-secondary);text-align:left}
+  .act-legend .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .act-legend b{margin-left:auto;color:var(--text-primary);font-variant-numeric:tabular-nums;font-weight:600}
+  .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--layer-02);border-left:3px solid var(--sup-info);padding:10px 16px;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;max-width:88vw}
+  .toast.show{opacity:1}
+</style>
+
+<header class="ibm-hdr">
+  <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v1H2zm0 4.5h12v1H2zM2 12h12v1H2z"/></svg>
+  <span class="brand"><b>IBM</b>Network Intelligence</span>
+  <span class="spacer"></span>
+  <span class="avatar" title="Wes">WJ</span>
+</header>
+
+<div class="topbar root" id="topbar"></div>
+<div id="screen"></div>
+<div class="inputbar" id="inputbar" hidden>
+  <div class="box">
+    <textarea id="msgInput" rows="1" placeholder="Ask a question…" aria-label="Message"></textarea>
+    <button id="msgSend" aria-label="Send"><svg class="icon" viewBox="0 0 16 16"><path d="M1.5 2l14 6-14 6 1.4-5.2L9 8 2.9 7.2z"/></svg></button>
+  </div>
+</div>
+<nav class="tabbar" id="tabbar"></nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =======================================================================
+   Data — identical to the desktop prototype (index.html)
+   ======================================================================= */
+function series(n, f){ return Array.from({length:n},(_,i)=>+f(i,n).toFixed(2)); }
+const noise=(s)=>{ let x=s; return ()=>{ x=(x*9301+49297)%233280; return x/233280-0.5; }; };
+const r1=noise(7), r2=noise(13), r3=noise(29), r4=noise(41);
+
+const INVESTIGATIONS = [
+ {
+  id:'inv-2417', tracked:true, stage:'Causes identified', title:'BGP session flapping to AS3356', site:'edge-rtr-02 · ord1', opened:'14 min ago', updated:'1 min ago', updatedMin:1, eventRange:'11:00 AM – 2:00 PM', owner:'auto-triage',
+  summary:'Peer 203.0.113.9 (Lumen, AS3356) has reset 6 times in 14 minutes; every reset was a hold-timer expiry. ~12.4k prefixes withdraw and re-learn on each flap, and transit traffic is failing over to edge-rtr-01, which is now at 78% on its own uplink.',
+  headline:'On-side optic degrading — not a Lumen peer issue',
+  indicators:[
+    'Peer sends hold-timer expiry, never a NOTIFICATION — the session partner is alive.',
+    'CRC/alignment errors on et-0/0/3 climbing +61/min since the first flap.',
+    'RX optical power drifted from -6 dBm to -14.9 dBm, below the -12.0 dBm low-warning threshold.'
+  ],
+  facts:[{l:'Resets / 14 min',v:'6',k:'bad'},{l:'Prefixes churned',v:'12.4k',k:'warn'},{l:'edge-rtr-01 uplink',v:'78%',k:'warn'},{l:'Customer impact',v:'none yet'}],
+  caseLines:[
+    {h:'Hold-timer expiry, not admin reset or notification',s:'The peer is alive but keepalives are being lost in transit.',st:'ok'},
+    {h:'Hold-timer expiry points at the physical layer or the peer',s:'Need interface counters on et-0/0/3 to tell those apart.',st:'now'},
+    {h:'Then decide: dampen locally vs. escalate to Lumen',s:'Depends on whether errors are on our side.',st:''}
+  ],
+  steps:[
+    {type:'tool', title:'Read interface and peer state on edge-rtr-02', why:'Confirms whether keepalive loss is caused by errors on et-0/0/3 (our side) or by the peer.', target:'edge-rtr-02 (ord1)', cmd:'show bgp neighbor 203.0.113.9 | match "state|hold|last"\nshow interfaces et-0/0/3 extensive | match "error|crc|flap"', risk:'Read-only · no config change',
+      output:`<span class="hl">Peer 203.0.113.9  AS 3356</span>  State: Established  (up 00:01:42)
+  Last State: Active   Last Event: RecvOpen
+  Last Error: <span class="bad">Hold Timer Expired Error</span>  (6 in 00:14:00)
+  Hold time: 90s  Keepalive: 30s
+<span class="hl">Physical interface: et-0/0/3</span>, Enabled, link is Up
+  Input errors: 0   <span class="bad">CRC/Align errors: 1,204</span>   (+61 in last 60s)
+  Carrier transitions: 0   Last flapped: 2026-08-31 (never)
+  Optics: RX power <span class="bad">-14.9 dBm</span>  (warn low -12.0)  TX power -2.1 dBm`,
+      finding:'CRC errors on et-0/0/3 are climbing (+61/min) and RX optical power is below the low-warning threshold. This is on our side of the link — a degrading optic or dirty fiber, not a Lumen problem. Keepalives are being corrupted, which explains the hold-timer expiries.'},
+    {type:'remediation', title:'Shed transit from the bad link and open a fiber ticket', why:'Stops the prefix churn immediately while the physical issue is fixed. Session stays up so it can be restored with one command.', target:'edge-rtr-02 (ord1)', cmd:'set protocols bgp group lumen neighbor 203.0.113.9 import LOCAL-PREF-50\nset protocols bgp group lumen neighbor 203.0.113.9 export PREPEND-3X\ncommit confirmed 10', risk:'Traffic shift · reversible · auto-rollback 10 min', side:'Also creates ticket NOC-8821 for optics replacement on et-0/0/3.',
+      output:`commit confirmed will be automatically rolled back in 10 minutes unless confirmed
+commit complete
+<span class="ok">✓</span> 12,391 prefixes now preferred via edge-rtr-01
+<span class="ok">✓</span> edge-rtr-02 ↔ AS3356 remains Established (no traffic)
+<span class="ok">✓</span> Ticket NOC-8821 created · assigned: ord1 smart-hands`,
+      finding:'Transit is now flowing via edge-rtr-01 (uplink at 61% and steady). The flapping session is still up but carries no traffic, so further resets are harmless. I will confirm the commit once edge-rtr-01 has held for 5 minutes and watch NOC-8821.'}
+  ],
+  cards:[
+    {id:'c1',tab:'signals',type:'chart',title:'BGP session state · 203.0.113.9',kind:'step',unit:'',series:series(60,(i)=>{const flaps=[18,24,31,38,47,55];return flaps.some(f=>i>=f&&i<f+2)?0:1;}),ymax:1,labels:['down','up'],cap:'6 resets in 14 min · hold-timer expiry'},
+    {id:'c2',tab:'signals',type:'chart',title:'CRC errors · et-0/0/3 (per min)',kind:'line',unit:'/min',series:series(60,(i)=>i<16?Math.max(0,2+r1()*2):Math.min(70,(i-16)*4+r1()*8)),thr:20,cap:'+61/min now · threshold 20/min'},
+    {id:'c3',tab:'signals',type:'chart',title:'RX optical power · et-0/0/3',kind:'line',unit:' dBm',series:series(60,(i)=>-6-Math.max(0,(i-14))*0.2+r2()*0.4),thr:-12,cap:'-14.9 dBm · low-warn -12.0 dBm'},
+    {id:'c4',tab:'signals',type:'chart',title:'Uplink utilization · edge-rtr-01',kind:'area',unit:'%',series:series(60,(i)=>i<18?42+r3()*4:Math.min(80,42+(i-18)*1.1+r3()*4)),thr:85,cap:'78% · failover traffic from edge-rtr-02'},
+    {id:'c7',tab:'signals',type:'kv',title:'Peer facts',rows:[['Peer','203.0.113.9 · AS3356 (Lumen)'],['Local','edge-rtr-02 et-0/0/3 · 100G LR4'],['Session','Established · up 00:01:42'],['Hold / KA','90s / 30s'],['Prefixes','12,391 received'],['Backup path','edge-rtr-01 → AS174'],['Last change','none in 30d']]},
+    {id:'c8',tab:'signals',type:'kv',title:'Blast radius',rows:[['Customers','0 impacted (failover working)'],['Headroom','edge-rtr-01 at 78% / 100G','warn'],['If both fail','ord1 loses transit','bad'],['Smart hands','ord1 · 40 min ETA']]}
+  ]
+ },
+ {
+  id:'inv-2419', tracked:true, stage:'Remediation created', title:'Uplink saturated: core-sw-01 → agg-sw-04', site:'40G Po12 · dfw2', opened:'22 min ago', updated:'9 min ago', updatedMin:9, eventRange:'10:45 AM – 1:45 PM', owner:'auto-triage',
+  summary:'The 40G port-channel between core-sw-01 and agg-sw-04 has been at 94–97% for 22 minutes with 0.4% output drops. 71% of the bytes are a single storage-replication flow group (10.40.8.0/22 → 10.40.72.0/22) that started at 09:02, matching the nightly backup schedule running 6 hours late.',
+  headline:'Backup traffic saturating the link, not a fault',
+  indicators:[
+    "71% of Po12 bytes are one storage-replication flow (10.40.8.0/22 → 10.40.72.0/22).",
+    'Flow start (09:02) matches a backup job that normally runs 03:00–05:30 — it is 6h late.',
+    'Output drops (0.4%) and p99 latency (+18 ms) only appear after the flow starts.'
+  ],
+  facts:[{l:'Utilization',v:'96%',k:'bad'},{l:'Output drops',v:'0.4%',k:'warn'},{l:'Backup share',v:'71%'},{l:'Latency (p99)',v:'+18 ms',k:'warn'}],
+  caseLines:[
+    {h:'Traffic is legitimate but mistimed',s:'Backup job slipped from 03:00 to 09:02 after a failed run.',st:'ok'},
+    {h:'Cap the backup class rather than the link',s:'A 15G policer on the replication class leaves 25G for production.',st:'now'},
+    {h:'Verify drops fall to zero after the change',s:'Then hand off to the storage team to fix the schedule.',st:''}
+  ],
+  steps:[
+    {type:'remediation', title:'Rate-limit storage replication on Po12', why:'Production flows are dropping packets. Policing only the replication class protects them without touching the backup job itself.', target:'core-sw-01 (dfw2)', cmd:'policy-map BACKUP-CAP\n  class STORAGE-REPL\n    police cir 15 gbps conform-action transmit exceed-action drop\ninterface port-channel12\n  service-policy output BACKUP-CAP', risk:'QoS change · reversible · backup job slows ~40%', side:'Storage team (#storage-ops) will be notified automatically.',
+      output:`core-sw-01(config-pmap-c)# police cir 15 gbps conform-action transmit exceed-action drop
+core-sw-01(config-if)# service-policy output BACKUP-CAP
+<span class="ok">✓</span> Policy applied · Po12
+<span class="ok">✓</span> Notified #storage-ops: "replication capped at 15G on dfw2 Po12 until 12:00"`,
+      finding:'Policer is active. Utilization on Po12 fell to 63% within 30 seconds and output drops are at zero. Backup will finish ~40% later (est. 11:40) — the storage team has been told.'},
+    {type:'tool', title:'Verify drops and latency after the change', why:'Confirms production traffic recovered before closing.', target:'core-sw-01 (dfw2)', cmd:'show interface port-channel12 | include rate|drops\nshow policy-map interface port-channel12 output', risk:'Read-only · no config change',
+      output:`Port-channel12  <span class="ok">output rate 25.3 Gbps</span>  (was 38.6)
+  Output drops: <span class="ok">0</span>  (last 5 min)
+Class-map: STORAGE-REPL   conformed 15.0 Gbps   <span class="hl">exceeded 9.1 Gbps</span> (dropped, expected)
+Class-map: class-default  10.3 Gbps   drops 0`,
+      finding:'Production classes show zero drops and p99 latency is back to baseline (+0.6 ms). Closing this as mitigated; root cause (backup schedule) is with the storage team as STOR-441.'}
+  ],
+  cards:[
+    {id:'c1',tab:'signals',type:'chart',title:'Utilization · Po12 (40G)',kind:'area',unit:'%',series:series(60,(i)=>i<22?38+r1()*6:Math.min(97,38+(i-22)*8+r1()*3)),thr:90,cap:'96% · threshold 90%'},
+    {id:'c2',tab:'signals',type:'chart',title:'Output drops · Po12',kind:'line',unit:'%',series:series(60,(i)=>i<30?0:Math.min(.5,(i-30)*.02+Math.abs(r2())*.1)),thr:.1,cap:'0.4% · threshold 0.1%'},
+    {id:'c3',tab:'signals',type:'chart',title:'p99 latency · dfw2 east-west',kind:'line',unit:' ms',series:series(60,(i)=>i<30?2.1+r3()*.4:Math.min(20,2.1+(i-30)*.6+r3()*1.5)),thr:10,cap:'19.8 ms · baseline 2.1 ms'},
+    {id:'c5',tab:'signals',type:'kv',title:'Link facts',rows:[['Link','core-sw-01 Po12 ↔ agg-sw-04 Po12'],['Capacity','4 × 10G LACP = 40G'],['Load now','38.6 Gbps (96%)','bad'],['Drops','0.4% output','warn'],['Top talker','storage replication · 27.4G'],['Prod traffic','11.2 Gbps']]}
+  ]
+ },
+ {
+  id:'inv-2421', stage:'Causes identified', title:'Packet loss via AS174 transit', site:'dc-west · lax1', opened:'41 min ago', updated:'18 min ago', updatedMin:18, eventRange:'10:20 AM – 1:20 PM', owner:'auto-triage',
+  summary:'8 of 12 external probes routed through Cogent (AS174) are seeing 1.8–2.4% loss to dc-west. Loss appears at hop 4 (be3054.ccr41.lax) and persists end to end, so it is not just ICMP rate-limiting. Probes via the Zayo path are clean.',
+  headline:'Forwarding loss inside Cogent, not on our network',
+  indicators:[
+    'Loss (2.5%) begins at hop 4 (be3054.ccr41.lax) and persists to the destination.',
+    'The same destinations show 0.0% loss over the Zayo path.',
+    'edge-rtr-11 shows 0 errors and 41% utilization — our equipment is healthy.'
+  ],
+  facts:[{l:'Loss (median)',v:'2.1%',k:'warn'},{l:'Probes affected',v:'8 / 12'},{l:'Via Zayo',v:'0.0%',k:'ok'},{l:'Customer tickets',v:'2'}],
+  caseLines:[
+    {h:'Loss is path-specific, not host-specific',s:'Same targets are clean via Zayo.',st:'ok'},
+    {h:'Confirm the loss is real at hop 4 with a long mtr',s:'Distinguish rate-limited ICMP from real forwarding loss.',st:'now'},
+    {h:'If real, steer inbound traffic away from Cogent',s:'AS-path prepend toward AS174; open a ticket with Cogent.',st:''}
+  ],
+  steps:[
+    {type:'tool', title:'Run a 200-cycle mtr from probe-lax-1', why:'A single traceroute cannot separate ICMP de-prioritization from real loss; 200 cycles can.', target:'probe-lax-1 (external)', cmd:'mtr -rwzc 200 198.51.100.20', risk:'Read-only · ~3 min runtime',
+      output:`HOST: probe-lax-1                      Loss%   Snt   Last   Avg  Best  Wrst StDev
+  1. AS???    10.9.0.1                    0.0%   200    0.4   0.5   0.3   1.1   0.1
+  2. AS174    gi0-0-0-9.nr11.lax          0.0%   200    1.2   1.3   1.0   3.4   0.3
+  3. AS174    be2011.ccr21.lax            0.0%   200    1.8   1.9   1.5   4.0   0.4
+  4. AS174    <span class="bad">be3054.ccr41.lax            2.5%</span>   200    2.6  14.7   2.1  88.2  19.3
+  5. AS174    be2352.ccr31.sjc            <span class="bad">2.0%</span>   200    9.1  10.2   8.7  40.1   4.4
+  6. AS64512  edge-rtr-11.lax1.dc-west    <span class="bad">2.0%</span>   200    9.6   9.8   9.2  12.0   0.6
+  7. AS64512  198.51.100.20               <span class="bad">2.0%</span>   200    9.7   9.9   9.3  11.8   0.5`,
+      finding:'Loss begins at hop 4 and carries through to the destination, and hop 4 also shows a 88 ms worst-case with high jitter — that is a congested or faulty link inside Cogent LAX, not ICMP rate-limiting. This is not on our equipment.'},
+    {type:'remediation', title:'Prepend AS-path toward AS174 to shift inbound', why:'Moves inbound traffic to the clean Zayo path while Cogent investigates. No impact on outbound.', target:'edge-rtr-11 (lax1)', cmd:'route-policy COGENT-OUT\n  prepend as-path 64512 3\nend-policy\ncommit', risk:'Inbound traffic shift · reversible', side:'Opens ticket with Cogent NOC referencing be3054.ccr41.lax.',
+      output:`<span class="ok">✓</span> route-policy COGENT-OUT committed on edge-rtr-11
+<span class="ok">✓</span> Inbound via AS174: 4.1 Gbps → 0.3 Gbps (6 min)
+<span class="ok">✓</span> Inbound via AS6461 (Zayo): 3.2 Gbps → 7.0 Gbps
+<span class="ok">✓</span> Cogent ticket 2026091041-LAX opened`,
+      finding:'Inbound has moved to Zayo and probe loss is 0.0% on 12 of 12. I will keep the prepend until Cogent closes their ticket, then propose removing it.'}
+  ],
+  cards:[
+    {id:'c1',tab:'signals',type:'chart',title:'Probe loss · via AS174 (median)',kind:'line',unit:'%',series:series(60,(i)=>i<20?Math.abs(r1())*.2:Math.min(2.6,(i-20)*.12+Math.abs(r1())*.6)),thr:1,cap:'2.1% · threshold 1%'},
+    {id:'c2',tab:'signals',type:'chart',title:'Probe loss · via AS6461 Zayo',kind:'line',unit:'%',series:series(60,()=>Math.abs(r4())*.15),thr:1,cap:'0.0% · clean'},
+    {id:'c3',tab:'signals',type:'chart',title:'RTT · probe-lax-1 → dc-west',kind:'line',unit:' ms',series:series(60,(i)=>i<20?9.4+r3()*.6:9.4+Math.abs(r3())*9+(i%7===0?18:0)),thr:25,cap:'p50 9.9 ms · worst 88 ms'},
+    {id:'c5',tab:'signals',type:'kv',title:'Path facts',rows:[['Transit','AS174 Cogent · edge-rtr-11'],['Bad hop','be3054.ccr41.lax','bad'],['Alt path','AS6461 Zayo · 0.0% loss','ok'],['Inbound share','Cogent 56% / Zayo 44%'],['Tickets','2 customer (streaming)']]}
+  ]
+ },
+ {
+  id:'inv-2423', stage:'Initially analyzed', title:'Unusual auth pattern on bastion-02', site:'jump-host · iad1', opened:'6 min ago', updated:'2 min ago', updatedMin:2, eventRange:'11:45 AM – 2:45 PM', owner:'auto-triage',
+  summary:'14 SSH logins to bastion-02 from 3 new source IPs in the last 20 minutes, all using the on-call service account and all successful. The pattern matches either an authorized pentest window or a leaked credential — I cannot tell which from logs alone.',
+  headline:'Credential looks valid — intent still unconfirmed',
+  indicators:[
+    '14 successful logins, 0 failed attempts — not a brute-force pattern.',
+    'All 3 source IPs have never been seen for this account before.',
+    'No pentest or maintenance window found on the security calendar.'
+  ],
+  facts:[{l:'New source IPs',v:'3'},{l:'Logins (20 min)',v:'14',k:'warn'},{l:'Account',v:'svc-oncall'},{l:'Failed attempts',v:'0'}],
+  caseLines:[
+    {h:'Logins are all valid, no brute-force signature',s:'0 failures before success — looks like a real credential, not guessing.',st:'ok'},
+    {h:'Need to know if this is expected',s:'Security calendar shows nothing scheduled, but that is not authoritative.',st:'now'},
+    {h:'Then either allowlist the IPs or rotate the credential and block',s:'Depends on your answer.',st:''}
+  ],
+  steps:[
+    {type:'question', title:'Confirm whether this is expected access', why:'I can allowlist the IPs and stand down, or rotate the credential and block them — I need to know which before doing either.', prompt:'Is this scheduled pentest / authorized access from a new location, or should I treat it as compromised and rotate svc-oncall?'}
+  ],
+  cards:[
+    {id:'c1',tab:'signals',type:'chart',title:'SSH logins · bastion-02 (svc-oncall)',kind:'line',unit:' logins',series:series(60,(i)=>i<40?0:Math.min(14,(i-40)*1.1+Math.max(0,r1()*0.4))),thr:5,cap:'14 successful logins in 20 min · 0 in the prior 40'},
+    {id:'c2',tab:'signals',type:'kv',title:'New source IPs',rows:[['203.0.113.44','AS20473 · Frankfurt, DE — new for this account','warn'],['198.51.100.19','AS16509 · San Jose, US — new for this account','warn'],['192.0.2.77','AS8075 · Ashburn, US — new for this account','warn'],['Pentest window','None scheduled','bad']]}
+  ]
+ },
+ {
+  id:'inv-2431', passive:true, stage:'Initially analyzed', title:'DNS resolver latency spike on ns3.aus1', site:'aus1 · resolver pool', opened:'52 min ago', updated:'25 min ago', updatedMin:25, eventRange:'9:15 AM – 12:15 PM', owner:'auto-triage',
+  summary:'ns3.aus1 briefly answered queries at p95 180ms, about 40x its normal 4-5ms baseline. The spike lasted under 3 minutes and cleared on its own before any correlation could be run against cache state or upstream health.',
+  headline:'Brief latency spike, cleared before analysis could run',
+  indicators:[
+    'p95 resolution time spiked to 180ms for roughly 3 minutes.',
+    'No corresponding CPU, memory, or upstream timeout signal on the resolver.',
+    'Latency returned to baseline (4-5ms) before a cause could be isolated.'
+  ],
+  facts:[{l:'Peak p95',v:'180ms',k:'warn'},{l:'Duration',v:'3 min'},{l:'Customer impact',v:'none'}],
+  caseLines:[
+    {h:'Latency spiked and cleared within 3 minutes',s:'Gone before root-cause correlation could run.',st:'ok'},
+    {h:'No further signal to investigate',s:'Left open for pattern-matching if it recurs.',st:''}
+  ],
+  steps:[
+    {type:'info', title:'Watch for recurrence on ns3.aus1', why:'The spike cleared before a cause could be isolated — nothing to fix right now, but worth capturing more data if it happens again.', target:'ns3.aus1 (aus1)', manual:'If it recurs, pull cache-hit ratio and upstream forwarder RTT during the spike window to isolate a cause.', cmd:'show dns-cache stats\nshow forwarder health'}
+  ], cards:[]
+ },
+ {
+  id:'inv-2432', passive:true, stage:'Causes identified', title:'Config drift detected on leaf-sw-14', site:'leaf-sw-14 · dfw2', opened:'1 hr 10 min ago', updated:'5 min ago', updatedMin:5, eventRange:'8:30 AM – 11:30 AM', owner:'auto-triage',
+  summary:'leaf-sw-14 has a spanning-tree priority value that differs from the other 11 leaf switches in the pod. The drift was introduced by a manual change 9 days ago and has caused no disruption, since the switch has not been in a root-bridge election since.',
+  headline:'One switch has a non-standard STP priority, no impact yet',
+  indicators:[
+    'leaf-sw-14 STP priority is 4096; the other 11 leaves in the pod are 32768.',
+    'Change was traced to a manual config commit 9 days ago.',
+    'No root-bridge election has occurred since, so there has been no behavioral impact.'
+  ],
+  facts:[{l:'Switches affected',v:'1 of 12'},{l:'Drift age',v:'9 days',k:'warn'},{l:'Customer impact',v:'none'}],
+  caseLines:[
+    {h:'Drift traced to a manual change 9 days ago',s:'STP priority set outside the standard template.',st:'ok'},
+    {h:'No remediation needed yet',s:'Flagged for the next maintenance window instead of an urgent fix.',st:''}
+  ],
+  steps:[
+    {type:'info', title:'Reconcile leaf-sw-14 to the pod standard', why:'No impact yet, but leaving it drifted risks a surprise the next time this switch is in a root-bridge election.', target:'leaf-sw-14 (dfw2)', manual:'During the next maintenance window, set the STP priority back to the pod standard.', cmd:'spanning-tree vlan 1-100 priority 32768'}
+  ], cards:[]
+ },
+ {
+  id:'inv-2433', passive:true, stage:'Remediation created', title:'Backup link flapped briefly on core-rtr-09', site:'core-rtr-09 · sea1', opened:'2 hr ago', updated:'47 min ago', updatedMin:47, eventRange:'7:00 AM – 10:00 AM', owner:'auto-remediated',
+  summary:'The backup fiber link on core-rtr-09 flapped twice in quick succession, both under one second. A low-risk dampening policy was drafted and applied automatically since the link carries no production traffic and the change matches a pre-approved template.',
+  headline:'Backup-only link flapped twice, auto-dampened',
+  indicators:[
+    'Backup link flapped twice, each under 1 second, no traffic loss (link carries no production traffic).',
+    'Dampening policy matches a pre-approved low-risk template, so it applied automatically.',
+    'No customer-facing service touches this link today.'
+  ],
+  facts:[{l:'Flaps',v:'2'},{l:'Max outage',v:'<1s'},{l:'Customer impact',v:'none'}],
+  caseLines:[
+    {h:'Flap pattern matched a known noisy-optic signature',s:'Backup link only, no production traffic affected.',st:'ok'},
+    {h:'Dampening applied automatically',s:'Matches a pre-approved template, so no approval was required.',st:'ok'}
+  ],
+  steps:[
+    {type:'info', title:'Consider optic replacement if flapping recurs', why:'Dampening handles the symptom automatically, but a noisy optic that keeps flapping is usually worth replacing during a normal maintenance pass.', target:'core-rtr-09 backup link (sea1)', manual:'If flaps continue, schedule optic replacement on the backup fiber pair.', cmd:'show interface diagnostics optics <backup-if>'}
+  ], cards:[]
+ },
+ {
+  id:'inv-2434', passive:true, stage:'Resolved', title:'Scheduled cert rotation completed on vpn-gw-05', site:'vpn-gw-05 · dfw2', opened:'3 hr ago', updated:'1 hr 30 min ago', updatedMin:90, eventRange:'6:00 AM – 9:00 AM', owner:'auto-triage',
+  summary:'The TLS certificate on vpn-gw-05 was renewed 5 days ahead of expiry through the standard ACME job. Verification confirmed the new certificate chain is trusted and the gateway accepted client reconnects with no session drops.',
+  headline:'Routine cert renewal, verified clean',
+  indicators:[
+    'Certificate renewed 5 days before expiry via the standard ACME automation.',
+    'Chain of trust verified against the client bundle.',
+    'Zero session drops observed during rollover.'
+  ],
+  facts:[{l:'Days before expiry',v:'5'},{l:'Session drops',v:'0',k:'ok'},{l:'Customer impact',v:'none'}],
+  caseLines:[
+    {h:'Renewal ran on schedule',s:'Standard ACME job, no manual step required.',st:'ok'},
+    {h:'Post-renewal verification passed',s:'Chain trusted, reconnects clean.',st:'ok'}
+  ],
+  steps:[
+    {type:'info', title:'Optional: confirm the vault record', why:'Nothing is required — the renewal and verification both completed cleanly. This is only worth doing if you want a second confirmation on file.', target:'vpn-gw-05 (dfw2)', manual:'Confirm the renewed certificate’s new expiry date is logged correctly in the certificate vault.', cmd:'show certificate vpn-gw-05 | include Expiry'}
+  ], cards:[]
+ },
+ {
+  id:'inv-2435', passive:true, stage:'Initially analyzed', title:'Minor jitter on voice VLAN, sea1', site:'voice VLAN · sea1', opened:'25 min ago', updated:'12 min ago', updatedMin:12, eventRange:'12:30 PM – 3:30 PM', owner:'auto-triage',
+  summary:'Voice VLAN jitter briefly crossed the 20ms comfort threshold on 2 of 40 monitored calls. Both calls completed without a reported quality issue, and jitter returned to baseline within a minute.',
+  headline:'Jitter briefly elevated on 2 of 40 calls',
+  indicators:[
+    'Jitter exceeded 20ms on 2 of 40 monitored calls for under a minute.',
+    'No dropped calls or user-reported quality issues.',
+    'No corresponding congestion signal elsewhere on the voice VLAN.'
+  ],
+  facts:[{l:'Calls affected',v:'2 of 40'},{l:'Peak jitter',v:'23ms',k:'warn'},{l:'Dropped calls',v:'0',k:'ok'}],
+  caseLines:[
+    {h:'Jitter briefly elevated, no drops',s:'Self-corrected within a minute.',st:'ok'},
+    {h:'No further action needed right now',s:'Will keep watching for a recurring pattern.',st:''}
+  ],
+  steps:[
+    {type:'info', title:'Check QoS queue depth if this spreads', why:'Two calls briefly crossed the comfort threshold with no drops — not worth acting on today, but a widening pattern would point to queueing.', target:'voice VLAN (sea1)', manual:'If jitter starts affecting more calls, inspect QoS queue depth on the voice VLAN uplinks during peak windows.', cmd:'show queueing interface <voice-uplink>'}
+  ], cards:[]
+ }
+];
+
+const RECOMMENDATIONS = [
+ {
+  id:'rec-4410', isRec:true, title:'Codify AS-path prepend toward AS174 as standing policy', site:'edge-rtr-11 · lax1', opened:'12 min ago', updated:'12 min ago', updatedMin:12, eventRange:'10:50 AM – 1:50 PM', owner:'auto-triage',
+  summary:'Probe loss via Cogent (AS174) has now happened twice this quarter at the same hop (be3054.ccr41.lax). The AS-path prepend from investigation inv-2421 is still in place as a manual, undocumented change; making it standing policy avoids re-doing the same mitigation by hand the next time this transit path degrades.',
+  headline:'Recurring Cogent loss — worth making the workaround permanent',
+  indicators:[
+    'Second loss event via be3054.ccr41.lax this quarter.',
+    'The current prepend is a manual change, not codified in standing config.',
+    'The Zayo path has stayed clean both times this happened.'
+  ],
+  facts:[{l:'Occurrences',v:'2',k:'warn'},{l:'Current state',v:'Manual'},{l:'Clean alt path',v:'Zayo',k:'ok'}],
+  caseLines:[
+    {h:'Same failure twice, same hop',s:'be3054.ccr41.lax degraded in both incidents.',st:'ok'},
+    {h:'Recommend making the prepend permanent',s:'Removes the need to re-apply this by hand next time.',st:'now'}
+  ],
+  steps:[
+    {type:'recommend', title:'Add standing AS-path prepend for AS174', why:'This is the second loss event via be3054.ccr41.lax this quarter. Making the prepend permanent avoids re-doing this same mitigation next time.', target:'edge-rtr-11 (lax1)', cmd:'route-policy COGENT-OUT\n  prepend as-path 64512 3\nend-policy\ncommit\n! remove manual flag — codify as standing config', risk:'Policy change · reversible · no traffic impact today', side:'Related to investigation inv-2421.'}
+  ],
+  cards:[
+    {id:'c1',tab:'signals',type:'chart',title:'Packet loss · be3054.ccr41.lax',kind:'line',unit:'%',series:series(60,(i)=>{const spikes=[9,38];return spikes.some(s=>i>=s&&i<s+4)?3.5+r1()*.6:r1()*.15;}),thr:1,cap:'2 loss events this quarter · same hop both times'},
+    {id:'c2',tab:'signals',type:'kv',title:'Path facts',rows:[['Current prepend','Manual — set during inv-2421'],['Alt path (Zayo)','Clean both times','ok'],['Occurrences this quarter','2','warn']]}
+  ]
+ },
+ {
+  id:'rec-4411', isRec:true, title:'Apply consistent local-pref policy across ord1 edge routers', site:'ord1 · 6 edge routers', opened:'28 min ago', updated:'28 min ago', updatedMin:28, eventRange:'10:35 AM – 1:35 PM', owner:'auto-triage',
+  summary:'edge-rtr-02 carries a one-off local-pref override left over from investigation inv-2417 that the other 5 edge routers in ord1 do not share. Left inconsistent, the next transit failover in this pod will behave differently depending on which router absorbs it.',
+  headline:'One router has drifted from the standard edge policy',
+  indicators:[
+    'edge-rtr-02 carries a local-pref override the other 5 ord1 edge routers do not have.',
+    'The override was applied during inv-2417 and never reconciled with the standard template.',
+    'No customer impact today — this is a config-drift risk, not an active fault.'
+  ],
+  facts:[{l:'Routers affected',v:'6'},{l:'Drifted',v:'1',k:'warn'},{l:'Customer impact',v:'none'}],
+  caseLines:[
+    {h:'Config drift traced to a prior incident fix',s:'edge-rtr-02 kept a one-off override after inv-2417 closed.',st:'ok'},
+    {h:'Recommend reconciling to the standard template',s:'Keeps failover behavior predictable across the pod.',st:'now'}
+  ],
+  steps:[
+    {type:'recommend', title:'Reconcile edge-rtr-02 to the standard local-pref template', why:'Keeps failover behavior consistent across all 6 ord1 edge routers instead of only 5 of them.', target:'edge-rtr-02 (ord1)', cmd:'set policy-options policy-statement LOCAL-PREF-STD term default then local-preference 100\ndelete policy-options policy-statement LOCAL-PREF-OVERRIDE\ncommit', risk:'Config change · reversible · matches 5 other routers already running it', side:'No traffic shift expected — this only changes behavior during a future failover.'}
+  ],
+  cards:[
+    {id:'c1',tab:'signals',type:'kv',title:'Local-pref by router',rows:[['edge-rtr-01','100'],['edge-rtr-02','150 (override)','warn'],['edge-rtr-03','100'],['edge-rtr-04','100'],['edge-rtr-05','100'],['edge-rtr-06','100']]},
+    {id:'c2',tab:'signals',type:'kv',title:'Drift facts',rows:[['Source incident','inv-2417'],['Reconciled elsewhere','5 of 6 routers','ok'],['Customer impact today','none']]}
+  ]
+ },
+ {
+  id:'rec-4412', isRec:true, title:'Raise egress MTU to 9000B on ME-EVC-NNI_21', site:'agg fabric · 7 downstream devices', opened:'41 min ago', updated:'41 min ago', updatedMin:41, eventRange:'10:20 AM – 1:20 PM', owner:'auto-triage',
+  summary:'The egress interface ME-EVC-NNI_21 is configured for 1500B while every path behind it expects 9000B jumbo frames. Oversized frames are being silently discarded — no ICMP Frag-Needed is ever sent, so PMTUD never fires and the sender never learns to shrink its packets.',
+  headline:'MTU mismatch is silently discarding jumbo frames',
+  indicators:[
+    'Configured MTU is 1500B; expected end-to-end MTU is 9000B.',
+    'No ICMP Frag-Needed is generated — PMTUD cannot self-correct this.',
+    '7 downstream devices on this path show the same silent-discard signature.'
+  ],
+  facts:[{l:'Configured MTU',v:'1500B',k:'bad'},{l:'Expected MTU',v:'9000B'},{l:'Devices affected',v:'7',k:'warn'}],
+  caseLines:[
+    {h:'Frames are dropped, not fragmented',s:'No ICMP Frag-Needed means PMTUD never triggers.',st:'ok'},
+    {h:'Recommend raising the interface MTU to match the path',s:'Matches the 9000B jumbo-frame standard already used elsewhere.',st:'now'}
+  ],
+  steps:[
+    {type:'recommend', title:'Set ME-EVC-NNI_21 to 9000B MTU', why:'The rest of the path already expects jumbo frames; the egress interface is the one place still capped at 1500B.', target:'ME-EVC-NNI_21', cmd:'interface ME-EVC-NNI_21\n  mtu 9000\ncommit', risk:'Config change · reversible · matches the rest of the fabric', side:'Recommend a brief maintenance window since this interface carries live traffic.'}
+  ],
+  cards:[
+    {id:'c1',tab:'signals',type:'chart',title:'Silent discards · ME-EVC-NNI_21',kind:'line',unit:'/min',series:series(60,(i)=>i<20?r1()*2:Math.min(90,(i-20)*3.2+r1()*6)),thr:15,cap:'Rising since jumbo traffic began · no Frag-Needed sent'},
+    {id:'c2',tab:'signals',type:'kv',title:'Interface facts',rows:[['Configured MTU','1500B','bad'],['Expected MTU','9000B'],['ICMP Frag-Needed','None sent','bad'],['Downstream devices affected','7','warn']]}
+  ]
+ }
+];
+
+const SEED_CONVS = [
+  {id:'cv-old1', title:'Why is DNS slow from Austin?', when:'Yesterday', messages:[
+    {role:'user',text:'Why is DNS slow from Austin this morning?'},
+    {role:'assist',html:'<p>Resolver <span class="mono">ns2.aus1</span> was answering at p95 210 ms because its cache was cold after an unplanned restart at 06:41. It warmed up by 07:10 and is back at 4 ms. No action needed; I added a restart alert for the resolver pair.</p>'}]},
+  {id:'cv-old2', title:'Cert expiry · vpn-gw-03', when:'Mon', messages:[
+    {role:'user',text:'What happened with vpn-gw-03 cert?'},
+    {role:'assist',html:'<p>The certificate on <span class="mono">vpn-gw-03</span> was renewed 4 days before expiry via the approved ACME job. Nothing outstanding.</p>'}]}
+];
+
+const $=(id)=>document.getElementById(id);
+const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const inv=(id)=>INVESTIGATIONS.find(i=>i.id===id)||RECOMMENDATIONS.find(i=>i.id===id);
+
+const ICON={
+  tool:'<svg class="icon" viewBox="0 0 16 16"><path d="M13.7 4.3l-2-2L9 5l-.7-.7 1.4-1.4L8.3 1.5 4.2 5.6l1.4 1.4-1.4 1.4L2 10.6l-.7.7 2.1 2.1.7-.7 2.2-2.2 1.4-1.4 1.4 1.4 4.1-4.1-1.4-1.4z"/></svg>',
+  rem:'<svg class="icon" viewBox="0 0 16 16"><path d="M8 1L1 14h14L8 1zm0 2.2L13.3 13H2.7L8 3.2zM7.4 6h1.2v4H7.4zm0 5h1.2v1.2H7.4z"/></svg>',
+  check:'<svg class="icon" viewBox="0 0 16 16"><path d="M6.5 11.5L3 8l.9-.9 2.6 2.6 5.6-5.6.9.9z"/></svg>',
+  x:'<svg class="icon" viewBox="0 0 16 16"><path d="M12 4.7l-.7-.7L8 7.3 4.7 4l-.7.7L7.3 8 4 11.3l.7.7L8 8.7l3.3 3.3.7-.7L8.7 8z"/></svg>',
+  chart:'<svg class="icon" viewBox="0 0 16 16"><path d="M2 13h12v1H2zM3 8h2v4H3zm4-4h2v8H7zm4 2h2v6h-2z"/></svg>',
+  eye:'<svg class="icon" viewBox="0 0 16 16"><path d="M8 3C4.5 3 1.7 6.1 1 8c.7 1.9 3.5 5 7 5s6.3-3.1 7-5c-.7-1.9-3.5-5-7-5zm0 8.5A3.5 3.5 0 118 4.5a3.5 3.5 0 010 7zM8 6a2 2 0 100 4 2 2 0 000-4z"/></svg>',
+  ask:'<svg class="icon" viewBox="0 0 16 16"><path d="M8 1a4.5 4.5 0 00-4.5 4.5H5A3 3 0 118 8.5a1.3 1.3 0 00-.5 1v1h1v-.9c0-.3.1-.4.5-.7A4.3 4.3 0 0012.5 5.5 4.5 4.5 0 008 1zM7.25 12h1.5v1.5h-1.5z"/></svg>',
+  bookmark:'<svg class="icon" viewBox="0 0 16 16"><path d="M4 1a1 1 0 00-1 1v13l5-3 5 3V2a1 1 0 00-1-1z"/></svg>',
+  pause:'<svg class="icon" viewBox="0 0 16 16"><path d="M4.5 2.5h3v11h-3zm4 0h3v11h-3z"/></svg>',
+  loop:'<svg class="icon" viewBox="0 0 16 16"><path d="M8 3a5 5 0 104.58 3H11.1A3.5 3.5 0 118 4.5V6l3-2-3-2z"/></svg>',
+  spinner:'<svg class="icon spin" viewBox="0 0 16 16"><path d="M8 1a7 7 0 107 7h-1.5A5.5 5.5 0 118 2.5z"/></svg>',
+  home:'<svg class="icon" viewBox="0 0 16 16"><path d="M8 1.5l7 6V14a1 1 0 01-1 1h-4V10H6v5H2a1 1 0 01-1-1V7.5z"/></svg>',
+  clipboard:'<svg class="icon" viewBox="0 0 16 16"><path d="M5 2h6v2h2v11H3V4h2zm1 1v1h4V3zM5 7h6v1H5zm0 3h6v1H5zm0 3h4v1H5z"/></svg>',
+  chat:'<svg class="icon" viewBox="0 0 16 16"><path d="M2 2h12v9H6l-3 3v-3H2zm1 1v7h1v1.6L5.6 10H13V3z"/></svg>',
+  activity:'<svg class="icon" viewBox="0 0 16 16"><path d="M2 13h1.5V7H2zm3.2 0h1.5V3H5.2zm3.3 0h1.5V9H8.5zm3.3 0h1.5V5h-1.5z"/></svg>'
+};
+
+const invLink=(id)=>{ const i=inv(id); return `<button class="inline-link" data-open="${i.id}">${esc(i.title)}</button>`; };
+
+// Everything on the Activity tab is keyed by period — changing the
+// dropdown swaps in a different (hand-authored, not just multiplied)
+// dataset per window, since a rate like "% success" or "avg time to root
+// cause" doesn't scale linearly with a count the way "actions executed"
+// does. 24h stays the illustrative default and is the only period whose
+// deep-dive answers link out to specific investigations, since those are
+// the ones actually still live in the Investigations tab; 7d/30d speak
+// in aggregate instead of inventing investigations that don't exist.
+const ACT_PERIODS={ '24h':{label:'the last 24 hours'}, '7d':{label:'the last 7 days'}, '30d':{label:'the last 30 days'} };
+
+const ACT_DATA={
+  '24h':{
+    valid:{count:4, stages:{initAnalyzed:0, causesId:3, remCreated:1, resolved:0}},
+    dismissed:{count:1, stages:{flagged:1, fpConfirmed:1, noAction:1, reopened:0}},
+    progressed:71, progressedPct:'81% advanced',
+    actions:482, actionsPct:'95% success',
+    validations:61, validationsPct:'90% pass',
+    rootCause:'41 min', rootCauseDelta:'▼ 6m vs prior', rootCauseGood:true,
+    metricObs:2, alarmObs:4
+  },
+  '7d':{
+    valid:{count:19, stages:{initAnalyzed:2, causesId:11, remCreated:5, resolved:1}},
+    dismissed:{count:6, stages:{flagged:6, fpConfirmed:5, noAction:4, reopened:1}},
+    progressed:438, progressedPct:'83% advanced',
+    actions:3140, actionsPct:'94% success',
+    validations:402, validationsPct:'88% pass',
+    rootCause:'38 min', rootCauseDelta:'▼ 4m vs prior', rootCauseGood:true,
+    metricObs:13, alarmObs:27
+  },
+  '30d':{
+    valid:{count:64, stages:{initAnalyzed:5, causesId:34, remCreated:19, resolved:6}},
+    dismissed:{count:21, stages:{flagged:21, fpConfirmed:18, noAction:15, reopened:3}},
+    progressed:1780, progressedPct:'84% advanced',
+    actions:12650, actionsPct:'93% success',
+    validations:1615, validationsPct:'89% pass',
+    rootCause:'44 min', rootCauseDelta:'▲ 3m vs prior', rootCauseGood:false,
+    metricObs:52, alarmObs:103
+  }
+};
+
+const ACT_STAGE_META={
+  valid:[
+    {key:'initAnalyzed', label:'Initially analyzed', icon:ICON.eye, q:()=>'Has anything been initially analyzed but not yet triaged?'},
+    {key:'causesId', label:'Causes identified', icon:ICON.chart, q:p=>`Which investigations had causes identified in ${ACT_PERIODS[p].label}?`},
+    {key:'remCreated', label:'Remediation created', icon:ICON.rem, q:()=>'Which investigation got a remediation created autonomously?'},
+    {key:'resolved', label:'Resolved', icon:ICON.check, q:()=>'Have any investigations been fully resolved autonomously without approval?'}
+  ],
+  dismissed:[
+    {key:'flagged', label:'Flagged for review', icon:ICON.eye, q:()=>'What got flagged for review as a possible false positive?'},
+    {key:'fpConfirmed', label:'False positive confirmed', icon:ICON.check, q:()=>'Was that false positive confirmed?'},
+    {key:'noAction', label:'No action needed', icon:ICON.check, q:()=>'What needed no further action after review?'},
+    {key:'reopened', label:'Reopened', icon:ICON.rem, q:()=>'Has anything dismissed been reopened?'}
+  ]
+};
+const ACT_THROUGHPUT_Q={
+  progressed:p=>`How many investigations progressed on their own in ${ACT_PERIODS[p].label}?`,
+  actions:p=>`What actions did you execute autonomously in ${ACT_PERIODS[p].label}?`,
+  validations:p=>`What knowledge validations ran in ${ACT_PERIODS[p].label}?`,
+  rootCause:()=>'Has the average root cause time improved?',
+  metricObs:p=>`What are the metric-based observations from ${ACT_PERIODS[p].label}?`,
+  alarmObs:p=>`What are the alarm-based observations from ${ACT_PERIODS[p].label}?`
+};
+// Looks a topic key up across both the stage buttons and the throughput/
+// donut rows — one place that knows how to turn any Activity-tab topic
+// into its current (period-phrased) question text.
+function actQuestionText(topic){
+  for(const tab of ['valid','dismissed']){
+    const hit=ACT_STAGE_META[tab].find(s=>s.key===topic);
+    if(hit) return hit.q(state.actPeriod);
+  }
+  return ACT_THROUGHPUT_Q[topic] ? ACT_THROUGHPUT_Q[topic](state.actPeriod) : '';
+}
+
+const ACT_A={
+  initAnalyzed:{
+    '24h':()=>`0 right now — everything that came in during this period has already moved past initial analysis into either a confirmed cause or a pending approval.`,
+    '7d':()=>`2 came in this period and are still waiting on initial triage — everything else already moved past that stage.`,
+    '30d':()=>`5 came in this period and are still waiting on initial triage.`
+  },
+  causesId:{
+    '24h':()=>`3: ${invLink('inv-2417')}, ${invLink('inv-2419')}, and ${invLink('inv-2421')} — all reached a confirmed root cause without you needing to dig through raw logs.`,
+    '7d':()=>`11 investigations reached a confirmed root cause this period, including ${invLink('inv-2417')}, ${invLink('inv-2419')}, and ${invLink('inv-2421')} still active now — the rest have already moved on to remediation or resolution.`,
+    '30d':()=>`34 investigations reached a confirmed root cause this period. Most have since moved to remediation or resolution; ${invLink('inv-2417')}, ${invLink('inv-2419')}, and ${invLink('inv-2421')} are the ones still active.`
+  },
+  remCreated:{
+    '24h':()=>`1: ${invLink('inv-2419')}. The agent drafted the storage-replication rate limit; it's sitting in <b>Investigations</b> waiting on your approval to apply.`,
+    '7d':()=>`5 remediations were drafted this period, including the storage-replication rate limit on ${invLink('inv-2419')} still waiting on your approval.`,
+    '30d':()=>`19 remediations were drafted this period. ${invLink('inv-2419')} is the one still waiting on your approval; the rest have already been applied or superseded.`
+  },
+  resolved:{
+    '24h':()=>`0 in this period — every investigation that reaches a real change still stops for your approval before anything gets applied or closed out.`,
+    '7d':()=>`1 in this period reached full resolution without a fresh approval — a repeat of a change you'd already approved before, applied automatically under that pre-approved policy.`,
+    '30d':()=>`6 in this period reached full resolution under a pre-approved policy — all repeats of changes you'd approved before.`
+  },
+  flagged:{
+    '24h':()=>`1 case was flagged and reviewed — ${invLink('inv-2423')}, a burst of auth attempts that matched a known safe pattern closely enough to warrant a second look before treating it as a real incident.`,
+    '7d':()=>`6 cases were flagged and reviewed this period, including ${invLink('inv-2423')}'s auth-pattern burst.`,
+    '30d':()=>`21 cases were flagged and reviewed this period.`
+  },
+  fpConfirmed:{
+    '24h':()=>`Yes — ${invLink('inv-2423')} was confirmed once checked against the security calendar, so it was dismissed without paging anyone.`,
+    '7d':()=>`5 of the 6 flagged cases were confirmed false positives, including ${invLink('inv-2423')} — dismissed without paging anyone.`,
+    '30d':()=>`18 of the 21 flagged cases were confirmed false positives.`
+  },
+  noAction:{
+    '24h':()=>`1 item was reviewed and closed with no action needed — the underlying signal resolved on its own before any change was required.`,
+    '7d':()=>`4 items were reviewed and closed with no action needed this period.`,
+    '30d':()=>`15 items were reviewed and closed with no action needed this period.`
+  },
+  reopened:{
+    '24h':()=>`0 — nothing dismissed in this period has come back. That's usually a good sign the dismissal was correct rather than premature.`,
+    '7d':()=>`1 — one dismissed case came back with a second, distinct occurrence and was reopened as a fresh investigation rather than treated as noise.`,
+    '30d':()=>`3 — a handful of dismissed cases came back over the month; each was reopened as its own investigation rather than assumed to be more noise.`
+  },
+  progressed:{
+    '24h':()=>`71 investigation steps advanced without anyone touching them — 81% of everything the agent attempted. Most of that is read-only checks and low-risk verifications; anything with real blast radius still lands in <b>Investigations</b> waiting on you.`,
+    '7d':()=>`438 investigation steps advanced without anyone touching them this period — 83% of everything the agent attempted.`,
+    '30d':()=>`1,780 investigation steps advanced without anyone touching them this period — 84% of everything the agent attempted.`
+  },
+  actions:{
+    '24h':()=>`482 actions ran on their own — mostly read-only diagnostics (interface checks, mtr runs, log queries) plus a handful of pre-approved low-risk remediations. 95% completed clean; the rest hit a guardrail and got escalated to a human approval instead of retrying blindly.`,
+    '7d':()=>`3,140 actions ran on their own this period — 94% completed clean; the rest hit a guardrail and got escalated to a human approval instead of retrying blindly.`,
+    '30d':()=>`12,650 actions ran on their own this period — 93% completed clean.`
+  },
+  validations:{
+    '24h':()=>`61 knowledge validations — checks against the runbook and prior incident history to confirm a hypothesis before acting on it. 90% passed; the failures are exactly why some investigations still need your input instead of a fully automated fix.`,
+    '7d':()=>`402 knowledge validations ran this period — 88% passed.`,
+    '30d':()=>`1,615 knowledge validations ran this period — 89% passed.`
+  },
+  rootCause:{
+    '24h':()=>`Average time to root cause is 41 minutes, down 6 minutes from the prior period. Most of that gain came from catching physical-layer signals (optics, CRC errors) earlier instead of waiting for a second or third flap.`,
+    '7d':()=>`Average time to root cause over this period is 38 minutes, down 4 minutes from the prior period.`,
+    '30d':()=>`Average time to root cause over this period is 44 minutes, up 3 minutes from the prior period — a couple of unusually slow multi-cause investigations pulled the average up.`
+  },
+  metricObs:{
+    '24h':()=>`2 observations came from metric thresholds — sustained deviations like utilization or latency crossing a set bound, as opposed to a device firing an alarm on its own.`,
+    '7d':()=>`13 observations came from metric thresholds this period.`,
+    '30d':()=>`52 observations came from metric thresholds this period.`
+  },
+  alarmObs:{
+    '24h':()=>`4 observations came from device-fired alarms — things like BGP hold-timer expiry or a PSU fault notification, which tend to be faster to catch than a slow metric drift.`,
+    '7d':()=>`27 observations came from device-fired alarms this period.`,
+    '30d':()=>`103 observations came from device-fired alarms this period.`
+  }
+};
+function actAnswerHTML(topic){ const fn=ACT_A[topic] && ACT_A[topic][state.actPeriod]; return fn?`<p>${fn()}</p>`:''; }
+
+/* =======================================================================
+   Charts (verbatim from desktop) + observation card body
+   ======================================================================= */
+function chartSVG(c){
+  const W=320,H=132,L=34,R=10,T=10,B=20;
+  const s=c.series, n=s.length;
+  let lo=Math.min(...s), hi=Math.max(...s);
+  if(c.thr!=null){lo=Math.min(lo,c.thr);hi=Math.max(hi,c.thr);}
+  if(c.ymax!=null){hi=c.ymax;lo=0;}
+  if(hi===lo){hi=lo+1;}
+  const pad=(hi-lo)*0.12; if(c.ymax==null){hi+=pad; lo-=pad;}
+  if(c.unit==='%'&&lo<0) lo=0; if(c.unit==='/min'&&lo<0) lo=0;
+  const x=(i)=>L+(i/(n-1))*(W-L-R), y=(v)=>T+(1-(v-lo)/(hi-lo))*(H-T-B);
+  const fmt=(v)=>c.labels?c.labels[Math.round(v)]:(Math.abs(v)>=100?v.toFixed(0):Math.abs(v)>=10?v.toFixed(0):v.toFixed(1));
+  const ticks=c.ymax!=null?[0,1]:[lo,(lo+hi)/2,hi];
+  let g='';
+  ticks.forEach(t=>{g+=`<line class="grid" x1="${L}" x2="${W-R}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text x="${L-4}" y="${(y(t)+3).toFixed(1)}" text-anchor="end">${fmt(t)}</text>`;});
+  const pts=s.map((v,i)=>[x(i),y(v)]);
+  let d='';
+  if(c.kind==='step'){ pts.forEach((p,i)=>{ d+= i===0?`M${p[0].toFixed(1)},${p[1].toFixed(1)}`:`H${p[0].toFixed(1)}V${p[1].toFixed(1)}`; }); }
+  else { d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(''); }
+  const color=c.kind==='step'?'var(--chart-2)':(c.thr!=null&&s[n-1]>c.thr&&c.unit!==' dBm')||(c.unit===' dBm'&&s[n-1]<c.thr)?'var(--chart-5)':'var(--chart-2)';
+  let area='';
+  if(c.kind==='area'){ area=`<path d="${d}V${y(lo).toFixed(1)}H${x(0).toFixed(1)}Z" fill="${color}" opacity=".14"/>`; }
+  let thr='';
+  if(c.thr!=null){ thr=`<line class="thr" x1="${L}" x2="${W-R}" y1="${y(c.thr).toFixed(1)}" y2="${y(c.thr).toFixed(1)}"/>`; }
+  const last=pts[n-1];
+  const endLbl=`${fmt(s[n-1])}${c.unit||''}`;
+  const lx=last[0]-4, ly=last[1]<T+16?last[1]+14:last[1]-7;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.title)}">
+    ${g}<line class="axis" x1="${L}" x2="${W-R}" y1="${(H-B).toFixed(1)}" y2="${(H-B).toFixed(1)}"/>
+    ${area}${thr}<path d="${d}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3" fill="${color}"/>
+    <text class="end" x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="end">${endLbl}</text>
+    <text x="${L}" y="${H-6}">-60 min</text><text x="${W-R}" y="${H-6}" text-anchor="end">now</text>
+  </svg>`;
+}
+function cardBody(c){
+  if(c.type==='chart') return chartSVG(c)+`<div class="chart-cap"><span>${esc(c.cap)}</span></div>`;
+  if(c.type==='kv') return `<dl class="kv">${c.rows.map(r=>`<dt>${esc(r[0])}</dt><dd class="${r[2]||''}">${esc(r[1])}</dd>`).join('')}</dl>`;
+  return '';
+}
+function questionsFor(c){
+  if(c.type==='chart') return [
+    {q:'What changed at the inflection point?',a:`The curve in <b>${esc(c.title)}</b> breaks upward at roughly -42 min. That lines up with the first event in this investigation's timeline, which is why I treat it as a symptom rather than a cause.`},
+    {q:'Is this still getting worse?',a:`Over the last 5 minutes of <b>${esc(c.title)}</b> the slope is ${c.kind==='step'?'flat between resets':'still positive'} — it has not plateaued.`},
+    {q:'Show the 7-day baseline',a:`The 7-day p50 for <b>${esc(c.title)}</b> sits near the bottom of this chart's range; the current value is well outside the p99 band.`}];
+  return [
+    {q:"What's the worst case here?",a:`From <b>${esc(c.title)}</b>: the worst case is losing the backup path as well, which would take the site off transit. Current headroom makes that unlikely in the next hour.`},
+    {q:'Who else should know?',a:`Based on <b>${esc(c.title)}</b>, the on-call for this site and the provider's NOC. I have not paged anyone; approving the remediation will post to the site channel automatically.`}];
+}
+
+/* =======================================================================
+   Needs / badges (verbatim logic from desktop)
+   ======================================================================= */
+const FILTERS=[
+  {k:'all',l:'All'},
+  {k:'tool',l:'Tool approval'},
+  {k:'rem',l:'Remediation approval'},
+  {k:'input',l:'Needs input'}
+];
+function needFor(i){
+  if(i.passive) return {cls:'none',icon:'',t:i.stage};
+  const st=state.invStatus[i.id];
+  if(st.reanalyzing) return {cls:'reanalyzing',icon:ICON.spinner,t:'Reanalyzing…'};
+  if(st.closed) return {cls:'closed',icon:ICON.check,t:i.isRec?'Applied':'Closed'};
+  const step=i.steps[st.stepIdx];
+  if(!step) return {cls:'closed',icon:ICON.check,t:i.isRec?'Applied':'Closed'};
+  if(st.waiting) return {cls:'watch',icon:ICON.eye,t:'Running…'};
+  // Anything past the very first step only got here by reanalyzing
+  // through it, and reanalyzing doesn't auto-hand the human a fresh
+  // thing to approve — it settles into a plain "looked at it, nothing
+  // needed from you" watch state instead, regardless of what type the
+  // next queued step actually is. Only the original first step (the one
+  // the investigation opened on) shows as needing approval this way.
+  if(st.stepIdx>0) return {cls:'reanalyzing',icon:ICON.spinner,t:'Reanalyzed'};
+  if(step.type==='tool') return {cls:'tool',icon:ICON.pause,t:'Needs tool approval'};
+  if(step.type==='remediation') return {cls:'rem',icon:ICON.pause,t:'Remediation ready to apply'};
+  if(step.type==='question') return {cls:'input',icon:ICON.ask,t:'Needs your input'};
+  if(step.type==='info') return {cls:'watch',icon:ICON.eye,t:'For awareness'};
+  return {cls:'recommend',icon:ICON.loop,t:i.isRec?'Recommendation':'Apply change'};
+}
+const needBadge=(need)=>need.icon?`<span class="need-badge ${need.cls}">${need.icon}</span>`:'';
+
+/* =======================================================================
+   Topology (verbatim generator, adapted wrapper for a dedicated screen)
+   ======================================================================= */
+function topoColor(v){
+  return v==='bad'?'var(--sup-error)':v==='warn'?'var(--sup-warning)':v==='ok'?'var(--sup-success)':v==='info'?'var(--sup-info)':v==='input'?'var(--magenta)':v==='rec'?'var(--purple)':'var(--border-strong)';
+}
+function topoNode(x,y,w,h,title,sub,variant){
+  variant=variant||'';
+  const isUs=variant.indexOf('us')===0;
+  const colorKey=isUs?variant.slice(3):variant;
+  const fill=isUs?'var(--layer-02)':'none';
+  const stroke=colorKey?topoColor(colorKey):'var(--border-strong)';
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>
+    <text class="topo-label" x="${x+14}" y="${y+18}">${esc(title)}</text>
+    ${sub?`<text class="topo-sub" x="${x+14}" y="${y+33}">${esc(sub)}</text>`:''}`;
+}
+function topoLink(d, variant, animated){
+  const c=topoColor(variant);
+  if(variant==='muted') return `<path d="${d}" fill="none" stroke="var(--border-strong)" stroke-width="1.5" stroke-dasharray="2 4"/>`;
+  if(animated) return `<path d="${d}" fill="none" stroke="${c}" stroke-width="2.5" stroke-dasharray="1 9" stroke-linecap="round"><animate attributeName="stroke-dashoffset" from="0" to="-40" dur="1.4s" repeatCount="indefinite"/></path><path d="${d}" fill="none" stroke="${c}" stroke-width="1" opacity=".35"/>`;
+  return `<path d="${d}" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="6 5"/>`;
+}
+function topoPulse(cx,cy,variant){
+  return `<circle cx="${cx}" cy="${cy}" r="5" fill="${topoColor(variant)}" filter="url(#topoGlow)"><animate attributeName="opacity" values="1;.35;1" dur="1.6s" repeatCount="indefinite"/></circle>`;
+}
+function topoTag(x,y,text,variant,anchor){
+  const c=variant?topoColor(variant):'var(--text-helper)';
+  return `<text class="topo-tag" x="${x}" y="${y}" text-anchor="${anchor||'middle'}" fill="${c}">${esc(text)}</text>`;
+}
+function topoSite(x,y,w,h,label){
+  return `<rect class="topo-site" x="${x}" y="${y}" width="${w}" height="${h}" rx="10"/><text class="topo-site-label" x="${x+12}" y="${y-8}">${esc(label)}</text>`;
+}
+function topoWrap(vb, body){
+  return `<div class="topo"><svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">
+      <defs><filter id="topoGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      ${body}
+    </svg></div>`;
+}
+function topologyHTML(i){
+  switch(i.id){
+    case 'inv-2417': return topoWrap('0 0 440 258', `
+      ${topoSite(14,24,164,212,'ord1')}
+      ${topoLink('M150,72 C230,72 250,58 300,58','warn')}
+      ${topoPulse(230,65,'warn')}
+      ${topoTag(196,46,'CRC +61/min','warn')}
+      ${topoTag(196,88,'-14.9 dBm RX','warn')}
+      ${topoLink('M150,198 C230,198 250,214 300,214','info',true)}
+      ${topoTag(225,240,'78% util · absorbing failover','info')}
+      <path d="M95,94 L95,176" fill="none" stroke="var(--border-strong)" stroke-width="1.5" stroke-dasharray="2 4"/>
+      ${topoNode(20,50,130,44,'edge-rtr-02','et-0/0/3 · degrading','us')}
+      ${topoNode(20,176,130,44,'edge-rtr-01','uplink · 78%','us')}
+      ${topoNode(300,36,126,46,'AS3356 (Lumen)','6 resets / 14 min','warn')}
+      ${topoNode(300,192,126,46,'AS174','backup transit','info')}
+    `);
+    case 'inv-2419': return topoWrap('0 0 440 210', `
+      ${topoNode(16,70,140,46,'core-sw-01','dfw2','us')}
+      ${topoNode(284,70,140,46,'agg-sw-04','dfw2','us')}
+      <path d="M156,84 L284,84" stroke="var(--sup-warning)" stroke-width="7" stroke-linecap="round"/>
+      <path d="M156,84 L284,84" stroke="var(--layer-01)" stroke-width="7" stroke-linecap="round" stroke-dasharray="1 10"><animate attributeName="stroke-dashoffset" from="0" to="-33" dur="1s" repeatCount="indefinite"/></path>
+      ${topoTag(220,66,'Po12 · 96% (38.6 Gbps)','warn')}
+      <path d="M156,100 L284,100" stroke="var(--sup-info)" stroke-width="2.5" stroke-linecap="round"/>
+      ${topoTag(220,120,'production · 11.2 Gbps · healthy','info')}
+      <path d="M120,150 L120,110" fill="none" stroke="var(--border-strong)" stroke-width="1.5" stroke-dasharray="2 4"/>
+      ${topoNode(50,154,140,44,'Storage backup job','started 09:02 · 6h late','warn')}
+    `);
+    case 'inv-2421': return topoWrap('0 0 440 220', `
+      ${topoNode(16,86,150,46,'edge-rtr-11','lax1 · dc-west','us')}
+      ${topoLink('M166,96 C230,96 250,50 300,50','warn')}
+      ${topoPulse(235,88,'warn')}
+      ${topoTag(200,36,'be3054.ccr41.lax · 2.1% loss','warn')}
+      ${topoNode(300,26,126,46,'AS174 (Cogent)','loss at hop 4','warn')}
+      ${topoLink('M166,110 C230,110 250,166 300,166','info',true)}
+      ${topoTag(215,196,'0.0% loss · now primary inbound','info')}
+      ${topoNode(300,142,126,46,'AS6461 (Zayo)','clean alt path','info')}
+    `);
+    case 'inv-2423': return topoWrap('0 0 440 240', `
+      ${topoNode(10,20,150,34,'203.0.113.44','Frankfurt, DE · new','input')}
+      ${topoNode(10,104,150,34,'198.51.100.19','San Jose, US · new','input')}
+      ${topoNode(10,188,150,34,'192.0.2.77','Ashburn, US · new','input')}
+      ${topoLink('M160,37 C230,37 250,100 300,116','input')}
+      ${topoLink('M160,121 L300,121','input')}
+      ${topoLink('M160,205 C230,205 250,140 300,126','input')}
+      ${topoNode(300,96,130,50,'bastion-02','svc-oncall · iad1','us')}
+      ${topoTag(365,168,'14 logins · 0 failed','input')}
+      ${topoTag(365,186,'no pentest scheduled','input')}
+    `);
+    case 'inv-2431': return topoWrap('0 0 440 170', `
+      ${topoNode(16,62,150,46,'client resolvers','aus1 pool','us')}
+      <path d="M166,78 L300,78" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="2 5"/>
+      ${topoNode(300,54,124,46,'ns3.aus1','resolver','us')}
+      ${topoTag(233,52,'180ms spike · self-cleared','muted')}
+      ${topoTag(233,128,'baseline 4-5ms now','ok')}
+    `);
+    case 'inv-2432': return topoWrap('0 0 440 190', `
+      ${topoNode(16,70,170,50,'leaf-sw-14','STP priority 4096 · drifted','us-warn')}
+      ${topoNode(254,70,170,50,'11 other leaf switches','STP priority 32768 · standard','us')}
+      <path d="M186,95 L254,95" fill="none" stroke="var(--border-strong)" stroke-width="1.5" stroke-dasharray="2 4"/>
+      ${topoTag(220,58,'pod · dfw2','muted')}
+      ${topoTag(220,144,'no root-bridge election since drift','ok')}
+    `);
+    case 'inv-2433': return topoWrap('0 0 440 170', `
+      ${topoNode(16,62,150,46,'core-rtr-09','sea1','us')}
+      ${topoNode(300,62,124,46,'backup peer','no prod traffic','us')}
+      <path d="M166,78 L300,78" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="2 4"/>
+      ${topoTag(233,50,'flapped twice · <1s each','muted')}
+      ${topoTag(233,128,'dampening applied automatically','ok')}
+    `);
+    case 'inv-2434': return topoWrap('0 0 440 170', `
+      ${topoNode(16,62,150,46,'vpn-gw-05','dfw2','us')}
+      ${topoNode(300,62,124,46,'VPN clients','reconnected','ok')}
+      <path d="M166,78 L300,78" fill="none" stroke="var(--sup-success)" stroke-width="2.5" stroke-linecap="round"/>
+      ${topoTag(233,50,'cert renewed · 5 days early','ok')}
+      ${topoTag(233,128,'0 session drops','ok')}
+    `);
+    case 'inv-2435': return topoWrap('0 0 440 210', `
+      ${topoSite(14,20,412,140,'voice VLAN · sea1')}
+      ${Array.from({length:40}).map((_,k)=>{
+        const col=k%10, row=Math.floor(k/10), x=36+col*38, y=54+row*32, bad=k===7||k===23;
+        return `<circle cx="${x}" cy="${y}" r="7" fill="${bad?'var(--sup-warning)':'var(--layer-02)'}" stroke="${bad?'var(--sup-warning)':'var(--border-strong)'}" stroke-width="1.5"/>`;
+      }).join('')}
+      ${topoTag(220,196,'2 of 40 calls briefly over 20ms jitter · self-corrected','warn')}
+    `);
+    case 'rec-4410': return topoWrap('0 0 440 200', `
+      ${topoNode(16,76,150,46,'edge-rtr-11','lax1','us')}
+      ${topoLink('M166,90 L300,66','muted')}
+      ${topoTag(233,56,'current: manual prepend','muted')}
+      ${topoNode(300,42,124,46,'AS174 (Cogent)','2 loss events this quarter','warn')}
+      ${topoLink('M166,102 L300,132','rec')}
+      ${topoTag(233,160,'recommend: make permanent','rec')}
+      ${topoNode(300,108,124,46,'Standing policy','codified · reversible','rec')}
+    `);
+    case 'rec-4411': return topoWrap('0 0 440 210', `
+      ${topoSite(14,20,412,150,'ord1 edge routers')}
+      ${topoNode(30,50,70,40,'rtr-01','100','us')}
+      ${topoNode(110,50,70,40,'rtr-03','100','us')}
+      ${topoNode(190,50,70,40,'rtr-04','100','us')}
+      ${topoNode(270,50,70,40,'rtr-05','100','us')}
+      ${topoNode(350,50,70,40,'rtr-06','100','us')}
+      ${topoNode(150,116,120,44,'edge-rtr-02','150 · override','us-warn')}
+      ${topoTag(220,190,'recommend: reconcile to 100','rec')}
+    `);
+    case 'rec-4412': return topoWrap('0 0 440 200', `
+      ${topoNode(16,76,150,46,'ME-EVC-NNI_21','egress · agg fabric','us-bad')}
+      ${topoTag(91,66,'1500B configured','bad')}
+      <path d="M166,90 L300,90" fill="none" stroke="var(--sup-error)" stroke-width="2" stroke-dasharray="4 4"/>
+      ${topoTag(233,84,'✕ jumbo frames dropped','bad','middle')}
+      ${topoNode(300,68,124,46,'7 downstream devices','expect 9000B','info')}
+      ${topoTag(233,160,'recommend: raise MTU to 9000B','rec')}
+    `);
+    default: return topoWrap('0 0 440 160', `
+      ${topoNode(16,58,180,46,i.site||i.title,'','us')}
+      <path d="M196,81 L300,81" fill="none" stroke="var(--border-strong)" stroke-width="2" stroke-dasharray="3 4"/>
+      ${topoNode(300,58,124,46,'network','','')}
+    `);
+  }
+}
+function topoQuestionsFor(i){
+  switch(i.id){
+    case 'inv-2417': return [
+      {q:'Why is edge-rtr-01 absorbing the failover?',a:`It's the backup uplink for this site — as edge-rtr-02's session to <b>AS3356</b> keeps flapping, transit automatically shifts to edge-rtr-01 via AS174. That's expected behavior, not a fault on edge-rtr-01.`},
+      {q:'What happens if edge-rtr-01 also degrades?',a:`That's the real risk here — edge-rtr-01 is already at 78% absorbing this failover, so there isn't much headroom left. If it also degraded, ord1 would have no clean path out.`}];
+    case 'inv-2419': return [
+      {q:'Why is the backup job sharing this link with production?',a:`Po12 is the only 40G path between core-sw-01 and agg-sw-04, so both classes of traffic ride it today. There's no QoS separating them yet.`},
+      {q:'What happens after the rate limit is applied?',a:`The storage-replication class gets capped at 15G, freeing roughly 25G for production. Utilization should drop from 96% to about 63% within seconds.`}];
+    case 'inv-2421': return [
+      {q:'Why does Zayo not see the same loss?',a:`It's a completely separate physical path — the loss is isolated to one Cogent hop (be3054.ccr41.lax). Zayo never touches that hop, so it stays clean.`},
+      {q:'What happens to inbound traffic if I approve the prepend?',a:`Inbound shifts from Cogent to Zayo within a few minutes — roughly 4.1 Gbps moves over. Outbound is unaffected.`}];
+    case 'inv-2423': return [
+      {q:'Why are all three IPs flagged as risky?',a:`None of the three have ever been used with the <b>svc-oncall</b> account before, and there's no pentest or maintenance window on the calendar to explain new locations.`},
+      {q:'What happens if I approve this as expected access?',a:`I'll allowlist the three source IPs against this account and stand down — no credential rotation.`}];
+    case 'inv-2431': return [
+      {q:"Why couldn't a cause be isolated?",a:`The spike lasted under 3 minutes and cleared before any correlation query could run against cache state or upstream health.`},
+      {q:'What would you check if it happens again?',a:`Cache-hit ratio and upstream forwarder RTT during the spike window itself, captured live rather than after the fact.`}];
+    case 'inv-2432': return [
+      {q:"Why hasn't this caused a problem yet?",a:`STP priority only matters during a root-bridge election, and the pod hasn't had one since the drift was introduced 9 days ago.`},
+      {q:'What is the risk of leaving it as-is?',a:`If a root-bridge election does happen, leaf-sw-14's non-standard priority could make it win one it shouldn't.`}];
+    case 'inv-2433': return [
+      {q:'Why did this apply automatically without approval?',a:`The dampening policy matched a pre-approved low-risk template — backup-only link, no production traffic, sub-second flaps.`},
+      {q:'Should I still be worried about this link?',a:`Not urgently. Worth keeping an eye on the optic if the flapping recurs, but there's no production exposure today.`}];
+    case 'inv-2434': return [
+      {q:'Was any manual step required?',a:`No — the standard ACME job handled renewal end to end, 5 days ahead of expiry, with no operator involvement.`},
+      {q:'How do you know the rollover was clean?',a:`The new certificate chain verified against the client trust bundle, and zero session drops were observed.`}];
+    case 'inv-2435': return [
+      {q:'Why only 2 of 40 calls?',a:`The jitter was brief and localized — under a minute, with no corresponding congestion signal anywhere else on the voice VLAN.`},
+      {q:'What would indicate a real problem?',a:`A wider share of calls crossing the threshold, jitter that doesn't self-correct, or an actual dropped call — none of which happened here.`}];
+    case 'rec-4410': return [
+      {q:"Why formalize a change that's already working?",a:`Because it's currently a manual, undocumented override on edge-rtr-11 — the next engineer who audits that router won't know why it's there.`},
+      {q:'Is there any risk in making it permanent?',a:`No traffic impact today since the prepend is already live; this just codifies it as standing policy.`}];
+    case 'rec-4411': return [
+      {q:'Why does this matter if there is no impact today?',a:`Because the impact only shows up during a failover — right when you can least afford edge-rtr-02 to behave differently.`},
+      {q:'Why is edge-rtr-02 different in the first place?',a:`It picked up a one-off local-pref override during inv-2417 that was never reconciled back to the standard template.`}];
+    case 'rec-4412': return [
+      {q:'Why did not PMTUD fix this automatically?',a:`PMTUD depends on receiving an ICMP Frag-Needed message when a packet is too large — this interface silently discards oversized frames instead.`},
+      {q:'Will raising the MTU affect anything else?',a:`It should just align this interface with the 9000B jumbo-frame standard already running on the rest of the fabric.`}];
+    default: return [{q:'What am I looking at here?',a:`This is a simplified view of the devices and paths involved in <b>${esc(i.title)}</b>.`}];
+  }
+}
+
+/* =======================================================================
+   Mobile state, navigation & rendering
+   ======================================================================= */
+const state = {
+  stack:[{screen:'root', tab:'inv'}],
+  invStatus:{}, filter:'all', actTab:'valid', actPeriod:'24h', actPeriodOpen:false,
+  chats:{}, convs:SEED_CONVS.map(c=>({...c})), draftConv:null
+};
+[...INVESTIGATIONS, ...RECOMMENDATIONS].forEach(x=>state.invStatus[x.id]={stepIdx:0, closed:false});
+
+function push(screen){ state.stack.push(screen); render(); }
+function pop(){ if(state.stack.length>1){ state.stack.pop(); render(); } }
+function gotoTab(tab){ state.stack=[{screen:'root',tab}]; render(); }
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2200); }
+// The split brief screen scrolls its chat half independently of #screen
+// (which stops scrolling itself once split — see render()), so this
+// picks whichever is actually the live scroll container right now.
+function scrollBottom(){
+  requestAnimationFrame(()=>{
+    const target=document.querySelector('.detail-split-bottom')||$('screen');
+    target.scrollTop=target.scrollHeight;
+  });
+}
+
+const TABS=[
+  {k:'inv', l:'Investigations', icon:ICON.clipboard},
+  {k:'rec', l:'Recommendations', icon:ICON.loop},
+  {k:'activity', l:'Activity', icon:ICON.activity},
+  {k:'chats', l:'Chats', icon:ICON.chat}
+];
+
+function render(){
+  const top=state.stack[state.stack.length-1];
+  $('tabbar').hidden = state.stack.length>1;
+  $('tabbar').innerHTML = TABS.map(t=>`<button class="${state.stack.length===1&&top.tab===t.k?'on':''}" data-tab="${t.k}" aria-label="${t.l}" title="${t.l}">${t.icon}</button>`).join('');
+  const tb=$('topbar');
+  tb.className='topbar'+(top.screen==='root'?' root':'');
+  tb.innerHTML=topbarHTML(top);
+  $('screen').innerHTML=screenHTML(top);
+  // Brief, Topology, and Observations all split top/bottom once that
+  // investigation's chat has actually started (see wrapChatSplit) —
+  // #screen itself has to stop being the scroll container at that
+  // point so the two halves can scroll independently instead of
+  // fighting it.
+  const CHAT_SCREENS=['detail','topology','observations'];
+  const chatStarted = CHAT_SCREENS.includes(top.screen) && state.chats[top.id] && state.chats[top.id].started;
+  $('screen').classList.toggle('is-split', !!chatStarted);
+  const ib=$('inputbar');
+  ib.hidden = !(top.screen==='reasoning' || top.screen==='conv' || CHAT_SCREENS.includes(top.screen));
+  const msgInput=$('msgInput');
+  if(msgInput) msgInput.placeholder = (top.screen==='reasoning' || CHAT_SCREENS.includes(top.screen)) ? 'Ask about this investigation…' : 'Ask a question…';
+}
+
+function topbarHTML(top){
+  if(top.screen==='root'){
+    const label={inv:'Investigations',rec:'Recommendations',activity:'Autonomous activity',chats:'Chats'}[top.tab];
+    return `<span class="ttl">${label}</span>`;
+  }
+  const back=`<button class="backbtn" data-back="1" aria-label="Back"><svg class="icon" viewBox="0 0 16 16"><path d="M6.5 3L8 4.5 4.5 8 8 11.5 6.5 13 1.5 8z"/></svg></button>`;
+  if(top.screen==='detail'){ const i=inv(top.id); return back+`<span class="ttl">${esc(i.title)}</span>`; }
+  if(top.screen==='topology') return back+`<span class="ttl">Topology</span>`;
+  if(top.screen==='observations') return back+`<span class="ttl">Observations</span>`;
+  if(top.screen==='reasoning') return back+`<span class="ttl">Reasoning thread</span>`;
+  if(top.screen==='conv') return back+`<span class="ttl">Chat</span>`;
+  return back;
+}
+
+function screenHTML(top){
+  if(top.screen==='root') return renderRoot(top.tab);
+  if(top.screen==='detail') return renderDetail(top.id);
+  if(top.screen==='reasoning') return renderReasoningScreen(top.id);
+  if(top.screen==='topology') return renderTopologyScreen(top.id);
+  if(top.screen==='observations') return renderObservationsScreen(top.id);
+  if(top.screen==='conv') return renderConvScreen(top.convId);
+  return '';
+}
+
+/* ---- root tabs ---- */
+function renderRoot(tab){
+  if(tab==='inv') return renderInvRoot();
+  if(tab==='rec') return renderRecRoot();
+  if(tab==='activity') return renderActivityRoot();
+  return renderChatsRoot();
+}
+function invRowHTML(i){
+  const need=needFor(i);
+  // The icon + its color still communicate status (needs approval, needs
+  // input, running, closed...) — the text next to it names where the
+  // investigation actually stands (its stage), not the action pending on
+  // it, so the two don't just repeat each other in different words.
+  // Once it's actually done, the static starting stage would read stale,
+  // so that one case overrides it. Recommendations (i.isRec) aren't
+  // staged investigations, so they fall back to need.t (already just
+  // "Recommendation", not a status verb).
+  const label=need.cls==='closed'?(i.isRec?'Applied':'Resolved'):(i.stage||need.t);
+  return `<button class="lrow" data-open="${i.id}">
+    <div class="title">${esc(i.title)}</div>
+    <div class="meta">${esc(i.site)} · ${esc(i.opened)}</div>
+    <div class="need ${need.cls}">${needBadge(need)}${esc(label)}</div>
+  </button>`;
+}
+function renderInvRoot(){
+  // 'All' means all — the full list, passive/autonomous and closed ones
+  // included. The other three pills narrow to just that status; nothing
+  // is pre-filtered out from under 'All' before that.
+  const rows=INVESTIGATIONS.filter(i=>state.filter==='all'||needFor(i).cls===state.filter);
+  return `<div class="filter-seg">${FILTERS.map(f=>`<button class="${state.filter===f.k?'on':''}" data-filter="${f.k}">${esc(f.l)}</button>`).join('')}</div>
+  <div class="list">${rows.length?rows.map(invRowHTML).join(''):'<div class="rail-empty">Nothing needs attention right now.</div>'}</div>`;
+}
+function renderRecRoot(){
+  const rows=RECOMMENDATIONS.filter(r=>needFor(r).cls!=='closed');
+  return `<div class="list">${rows.length?rows.map(invRowHTML).join(''):'<div class="rail-empty">Nothing pending.</div>'}</div>`;
+}
+function renderActivityRoot(){
+  const p=state.actPeriod, d=ACT_DATA[p], data=d[state.actTab];
+  const alarmPct=d.alarmObs/(d.metricObs+d.alarmObs)*100, metricPct=100-alarmPct;
+  const periodLabels={'24h':'Last 24 hours','7d':'Last 7 days','30d':'Last 30 days'};
+  return `
+  <div class="act-toprow">
+    <div class="act-period-wrap">
+      <button class="act-period-btn" type="button" data-periodtoggle="1" aria-haspopup="listbox" aria-expanded="${state.actPeriodOpen?'true':'false'}">
+        <span>${periodLabels[p]}</span>
+        <svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+      <div class="act-period-menu" role="listbox"${state.actPeriodOpen?'':' hidden'}>
+        ${Object.keys(periodLabels).map(k=>`<button class="act-period-opt${k===p?' on':''}" type="button" role="option" aria-selected="${k===p}" data-period="${k}">${periodLabels[k]}</button>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="act-card">
+    <div class="act-card-hd">
+      <div class="act-title">Investigations</div>
+      <div class="act-toggle"><button class="${state.actTab==='valid'?'on':''}" data-acttab="valid">Valid</button><button class="${state.actTab==='dismissed'?'on':''}" data-acttab="dismissed">Dismissed</button></div>
+      <div class="act-big ${state.actTab==='dismissed'?'dismissed':''}">${data.count}</div>
+    </div>
+    <ul class="act-stages">${ACT_STAGE_META[state.actTab].map(s=>{
+      const v=data.stages[s.key];
+      return `<li><button class="${v>0?'has-v':''}" data-q="${s.key}"><span class="act-stage-icon">${s.icon}</span><span class="act-stage-label">${esc(s.label)}</span><span class="act-stage-v">${v}</span></button></li>`;
+    }).join('')}</ul>
+  </div>
+  <div class="act-card">
+    <div class="act-title">Agent throughput</div>
+    <div class="act-rows">
+      ${actRow('Investigations progressed', d.progressedPct, String(d.progressed), 'progressed')}
+      ${actRow('Actions executed', d.actionsPct, String(d.actions), 'actions')}
+      ${actRow('Knowledge validations', d.validationsPct, String(d.validations), 'validations')}
+      ${actRow('Avg root cause time', d.rootCauseDelta, d.rootCause, 'rootCause', d.rootCauseGood)}
+    </div>
+  </div>
+  <div class="act-card">
+    <div class="act-title">Observations collected</div>
+    <div class="act-donut-wrap">
+      <div class="act-donut-box">
+        <svg class="act-donut" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--layer-02)" stroke-width="5"/>
+          <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--chart-4)" stroke-width="5" stroke-dasharray="${alarmPct.toFixed(2)} ${(100-alarmPct).toFixed(2)}" stroke-dashoffset="25"/>
+          <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--chart-2)" stroke-width="5" stroke-dasharray="${metricPct.toFixed(2)} ${(100-metricPct).toFixed(2)}" stroke-dashoffset="${(25-alarmPct).toFixed(2)}"/>
+        </svg>
+        <div class="act-donut-total"><b>${d.metricObs+d.alarmObs}</b><span>in period</span></div>
+      </div>
+      <ul class="act-legend">
+        <li><button data-q="metricObs"><span class="dot" style="background:var(--chart-2)"></span>Metric-based<b>${d.metricObs}</b></button></li>
+        <li><button data-q="alarmObs"><span class="dot" style="background:var(--chart-4)"></span>Alarm-based<b>${d.alarmObs}</b></button></li>
+      </ul>
+    </div>
+  </div>`;
+}
+function actRow(label,pct,val,q,good){
+  return `<button class="act-row" data-q="${q}"><span class="act-row-label">${esc(label)}</span><span class="act-row-right"><span class="act-row-pct${good?' good':''}">${esc(pct)}</span><span class="act-row-v${good?' mono':''}">${esc(val)}</span></span></button>`;
+}
+function renderChatsRoot(){
+  // Entries with invId point at an investigation's own reasoning thread
+  // (started from its brief screen's anchored composer, or a Topology/
+  // Observations conversation starter) rather than a free-standing
+  // conv — same thread either way, just opened via data-viewreason so
+  // it lands back on that investigation's full reasoning screen.
+  const rows=state.convs.length?[...state.convs].reverse().map(c=>c.invId
+    ? `<button class="lrow" data-viewreason="${c.invId}"><div class="title">${esc(c.title)}</div><div class="meta">${esc(c.when||'now')}</div></button>`
+    : `<button class="lrow" data-conv="${c.id}"><div class="title">${esc(c.title)}</div><div class="meta">${esc(c.when||'now')}</div></button>`
+  ).join(''):'<div class="rail-empty">Nothing yet.</div>';
+  return `<button class="rowbtn" data-newchat="1"><span class="lead"><svg class="icon" viewBox="0 0 16 16"><path d="M8.5 7.5V3h-1v4.5H3v1h4.5V13h1V8.5H13v-1z"/></svg></span><span class="t">New chat</span></button>
+  <div class="sechd">Past conversations</div>
+  <div class="list">${rows}</div>`;
+}
+
+/* ---- detail screen ---- */
+function ensureChat(id){
+  if(!state.chats[id]){
+    const i=inv(id), chat={messages:[], decisions:{}, started:false, splitHidden:false, splitPct:50};
+    // The thread's own opening entry — so "View full reasoning thread"
+    // actually shows the whole history (when this was first analyzed
+    // and onward), not just the steps from the first approval on.
+    chat.messages.push({role:'assist', html:`<p><span class="k">Initially analyzed —</span> ${esc(i.summary)}</p>`});
+    if(i.steps[0]) chat.messages.push({kind:'approval', stepIdx:0});
+    state.chats[id]=chat;
+  }
+  return state.chats[id];
+}
+// Flips a chat from "just the structured approval trail" to "someone's
+// actually chatting about this" — the trigger for the brief screen's
+// split view, and for surfacing this thread under the Chats tab (a
+// pointer at state.chats[id], not a copy — the two stay the same thread).
+function markChatStarted(id){
+  const chat=ensureChat(id);
+  if(!chat.started){
+    chat.started=true;
+    state.convs.push({id:'invconv-'+id, invId:id, title:inv(id).title, when:'now'});
+  }
+  return chat;
+}
+function renderDetail(id){
+  const i=inv(id), need=needFor(i), chat=ensureChat(id);
+  const st=state.invStatus[id], step=i.steps[st.stepIdx];
+  const factsHTML=`<div class="facts">${i.facts.map(f=>`<div class="fact"><div class="v ${f.k||''}">${esc(f.v)}</div><div class="l">${esc(f.l)}</div></div>`).join('')}</div>`;
+  // The current pending step surfaces here too, not just inside the full
+  // reasoning thread — someone opening an investigation shouldn't have to
+  // drill in one more level just to see (and act on) what's next. It's
+  // its own trailing card (own border-bottom gutter, like .brief has),
+  // not stitched into the middle of the reference card's own flow.
+  // st.stepIdx already advances the instant reanalyzing starts (so the
+  // chat feed's own "Reanalyzing…" message and this card are describing
+  // the same moment) — this has to check st.reanalyzing too, or it shows
+  // the next approval card immediately while the thread right below it
+  // is still visibly reanalyzing, which is worse than either alone.
+  // Matches needFor: only the investigation's original first step ever
+  // shows here as something to act on. Anything reached by reanalyzing
+  // (st.stepIdx>0) doesn't get handed over as a fresh approval card —
+  // this card just disappears once reanalyzed, same as the status does.
+  const nextStepHTML = st.reanalyzing
+    ? `<div class="next-step-card"><div class="brief-sec-hd">Next step</div><div class="reanalyzing-row">${ICON.spinner}<span>Reanalyzing…</span></div></div>`
+    : (step && !st.closed && st.stepIdx===0)
+      ? `<div class="next-step-card"><div class="brief-sec-hd">Next step</div>${approvalHTML(i, st.stepIdx, chat)}</div>`
+      : '';
+  const briefHTML = `<div class="brief">
+    <div class="status-band ${need.cls}"><div class="status-label">${needBadge(need)}${esc(need.t)}</div><div class="status-headline">${esc(i.headline)}</div></div>
+    ${factsHTML}
+    <button class="rowbtn" data-viewtopo="${i.id}"><span class="lead"><svg class="icon" viewBox="0 0 16 16"><path d="M2 2h5v5H2zm7 0h5v5H9zM2 9h5v5H2zm7 2a2 2 0 104 0 2 2 0 00-4 0z"/></svg></span><span class="t">View topology</span><span class="chev">›</span></button>
+    ${i.cards.length?`<button class="rowbtn" data-viewobs="${i.id}"><span class="lead">${ICON.eye}</span><span class="t">Observations (${i.cards.length})</span><span class="chev">›</span></button>`:''}
+    <button class="rowbtn" data-viewreason="${i.id}"><span class="lead">${ICON.chat}</span><span class="t">View full reasoning thread</span><span class="chev">›</span></button>
+    <div class="brief-section"><div class="brief-sec-hd">Details</div><p>${esc(i.summary)}</p></div>
+    <div class="brief-section"><div class="brief-sec-hd">Issue indicators</div><ul class="indicators">${i.indicators.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>
+  </div>${nextStepHTML}`;
+  return wrapChatSplit(id, i, briefHTML);
+}
+// Shared by the brief screen, Topology, and Observations — any screen
+// that's "about" one investigation gets the same anchored composer and
+// the same split-on-send behavior, all backed by the one chat thread
+// for that investigation (state.chats[id]), not a per-screen copy.
+// Splits into reference (top) / chat (bottom) only once the anchored
+// composer has actually been used on ANY of those screens — and stays
+// collapsed back to reference-only if the user closed it with the ×
+// (sendReasoning reopens it the next time they actually send something,
+// so closing never loses the thread, just the space).
+function wrapChatSplit(id, i, topHTML){
+  const chat=ensureChat(id);
+  if(!chat.started || chat.splitHidden) return topHTML;
+  // The chat half is just the chat — approvals and tool output already
+  // have their own card on the brief screen (see renderDetail's
+  // nextStepHTML), so they're left out here instead of showing twice.
+  const feed=chat.messages.filter(m=>!m.kind).map(m=>feedItemHTML(i,m,chat)).join('');
+  const pct=chat.splitPct||50;
+  return `<div class="detail-split">
+    <div class="detail-split-top" style="flex:0 0 ${pct}%">${topHTML}</div>
+    <div class="split-grabber" data-splitgrab="${id}" aria-hidden="true"></div>
+    <div class="detail-split-bottom">
+      <div class="chat-half-hd">
+        <span>Chat about this investigation</span>
+        <button class="chat-half-close" type="button" data-closechat="${id}" aria-label="Close chat">${ICON.x}</button>
+      </div>
+      <div class="feed">${feed}</div>
+    </div>
+  </div>`;
+}
+// The reasoning thread — approvals, tool output, and free-form back-and-
+// forth for this investigation. Same peer level as Topology and
+// Observations (a rowbtn on the brief screen, its own screen with the
+// composer live), not embedded inline in the brief anymore.
+function renderReasoningScreen(id){
+  const i=inv(id), chat=ensureChat(id);
+  const feed=chat.messages.map(m=>feedItemHTML(i,m,chat)).join('');
+  return `<div class="feed">${feed}</div>`;
+}
+function feedItemHTML(i, m, chat){
+  if(m.kind==='approval') return `<div class="msg assist"><div class="content">${approvalHTML(i, m.stepIdx, chat)}</div></div>`;
+  if(m.kind==='toolout') return `<div class="msg assist"><div class="content">${toolOutHTML(i, m.stepIdx)}</div></div>`;
+  if(m.role==='typing') return `<div class="msg assist"><div class="content"><div class="typing"><i></i><i></i><i></i></div></div></div>`;
+  // Reanalyzing needs to actually be visible in the thread someone's
+  // looking at, not just a transient badge in a list they may not be
+  // looking at — otherwise a response appears to be followed straight
+  // by a fresh approval card with nothing shown in between.
+  if(m.role==='reanalyzing') return `<div class="msg assist"><div class="content"><div class="reanalyzing-row">${ICON.spinner}<span>Reanalyzing…</span></div></div></div>`;
+  if(m.role==='user') return `<div class="msg user"><div class="bubble"><p>${esc(m.text)}</p></div></div>`;
+  return `<div class="msg assist"><div class="content">${m.html}</div></div>`;
+}
+function approvalHTML(i, idx, chat){
+  const s=i.steps[idx], dec=chat.decisions[idx];
+  if(s.type==='info'){
+    return `<p><span class="k">If you want to act on this —</span> ${esc(s.why)}</p>
+    <div class="appr info">
+      <div class="hd">${ICON.eye}<span class="t">Optional next step · ${esc(s.title)}</span></div>
+      <div class="bd">
+        <div class="row"><span class="k">Target</span><span class="mono">${esc(s.target)}</span></div>
+        <div class="row"><span class="k">Do it yourself</span><span>${esc(s.manual)}</span></div>
+        ${s.cmd?`<div class="row"><span class="k">Reference</span><span><code class="cmd">${esc(s.cmd)}</code></span></div>`:''}
+      </div>
+    </div>`;
+  }
+  if(s.type==='question'){
+    return `<p><span class="k">Needs your input —</span> ${esc(s.why)}</p>
+    <div class="appr question">
+      <div class="hd">${ICON.ask}<span class="t">Needs your input · ${esc(s.title)}</span></div>
+      <div class="bd"><div class="row"><span class="k">Ask</span><span>${esc(s.prompt)}</span></div></div>
+      ${dec?`<div class="decided">${ICON.check}"${esc(dec)}" — answered by you</div>`
+        :`<div class="ft-input"><input type="text" id="qinput-${idx}" class="qinput" placeholder="Type your answer…"/><button class="btn btn-primary" style="height:40px" data-answer="${idx}">Send</button></div>`}
+    </div>`;
+  }
+  const isTool=s.type==='tool', isRecommend=s.type==='recommend';
+  const icon=isTool?ICON.tool:isRecommend?ICON.loop:ICON.rem;
+  const label=isTool?'Tool approval':isRecommend?'Recommendation approval':'Remediation approval';
+  const approveLabel=isTool?'Approve & run':isRecommend?'Apply change':'Approve & apply';
+  const declineLabel=isRecommend?'Dismiss':'Decline';
+  return `<p><span class="k">${isRecommend?'Recommendation —':'Next step —'}</span><br>${esc(s.why)}</p>
+  <div class="appr ${isTool?'tool':isRecommend?'recommend':'rem'}">
+    <div class="hd">${icon}<span class="t">${label} · ${esc(s.title)}</span></div>
+    <div class="bd">
+      <div class="row"><span class="k">Target</span><span class="mono">${esc(s.target)}</span></div>
+      <div class="row"><span class="k">${isTool?'Commands':'Change'}</span><span><code class="cmd">${esc(s.cmd)}</code></span></div>
+      <div class="row"><span class="k">Risk</span><span>${esc(s.risk)}</span></div>
+      ${s.side?`<div class="row"><span class="k">Also</span><span>${esc(s.side)}</span></div>`:''}
+    </div>
+    ${dec?`<div class="decided ${dec==='deny'?'no':''}">${dec==='deny'?ICON.x:ICON.check}${dec==='deny'?(isRecommend?'Dismissed':'Declined'):(isTool?'Approved — ran':'Approved — applied')}</div>`
+      :`<div class="ft"><button class="btn btn-primary" data-approve="${idx}">${approveLabel}</button><button class="btn btn-secondary" data-deny="${idx}">${declineLabel}</button></div>`}
+  </div>`;
+}
+function toolOutHTML(i, idx){
+  const s=i.steps[idx];
+  return `<div class="tool-out"><div class="hd">${ICON.tool}${esc(s.target)} · ${s.type==='tool'?'output':'commit log'}</div><pre>${s.output}</pre></div><p style="margin-top:12px">${esc(s.finding)}</p>`;
+}
+function decide(id, idx, dec){
+  const i=inv(id), st=state.invStatus[id], chat=state.chats[id], step=i.steps[idx];
+  chat.decisions[idx]=dec;
+  render();
+  if(step.type==='recommend'){
+    if(dec==='approve'){
+      st.closed=true;
+      chat.messages.push({role:'assist',html:`<p>Applied. ${esc(step.side||'')}</p>`});
+    } else {
+      chat.messages.push({role:'assist',html:'<p>Understood — leaving this as a recommendation for now.</p>'});
+    }
+    render(); scrollBottom(); return;
+  }
+  if(dec==='deny'){
+    chat.messages.push({role:'typing'}); render();
+    setTimeout(()=>{
+      chat.messages.pop();
+      chat.messages.push({role:'assist',html:`<p>Understood — I won't ${step.type==='tool'?'run that':'apply that change'}. Let me know what you'd rather check first.</p>`});
+      render(); scrollBottom();
+    }, 700); return;
+  }
+  chat.messages.push({role:'typing'}); render(); scrollBottom();
+  setTimeout(()=>{
+    chat.messages.pop();
+    chat.messages.push({kind:'toolout', stepIdx:idx});
+    // Reanalyzing is its own visible beat in the thread — not just a
+    // badge that changes somewhere else — so a response is never
+    // immediately followed by a fresh approval card with nothing shown
+    // in between. Mirrors exactly what happens after a question gets
+    // answered (see answerQuestion below).
+    st.stepIdx=idx+1; st.reanalyzing=true;
+    chat.messages.push({role:'reanalyzing'});
+    render(); scrollBottom();
+    // Toast fires with the reveal below, not here — it used to fire the
+    // moment reanalyzing started but stay up longer (2200ms) than
+    // reanalyzing itself lasted, so there was a real stretch where the
+    // toast was still visible claiming "just ran" while the next
+    // approval card had already appeared. The two should never be
+    // telling a different story at the same time.
+    setTimeout(()=>{
+      chat.messages.pop();
+      st.reanalyzing=false;
+      // Doesn't hand over a fresh approval card even if there's another
+      // step queued — reanalyzing concludes, it doesn't escalate into a
+      // new ask on its own (see needFor: anything past the first step
+      // reads as "Reanalyzed", not "needs approval").
+      chat.messages.push({role:'assist', html:'<p>Reanalyzed — nothing further needed right now.</p>'});
+      render(); scrollBottom();
+      toast(step.type==='tool'?'Tool ran on '+step.target:'Change applied on '+step.target);
+    }, 2200);
+  }, 1200);
+}
+function answerQuestion(id, idx){
+  const i=inv(id), st=state.invStatus[id], chat=state.chats[id];
+  const el=$('qinput-'+idx); const val=(el.value||'').trim(); if(!val) return;
+  chat.decisions[idx]=val;
+  render();
+  chat.messages.push({role:'typing'}); render(); scrollBottom();
+  setTimeout(()=>{
+    chat.messages.pop();
+    chat.messages.push({role:'assist',html:`<p>Got it — noted: "${esc(val)}".</p>`});
+    // Same reanalyzing beat the tool-call flow gets — answering a
+    // question isn't the end of the investigation, it's new context
+    // the agent has to fold back in, which takes a moment and can
+    // surface a new step. It should never just flip straight to
+    // "Closed" the instant an answer comes in, or straight to a fresh
+    // approval card with no visible sign anything happened in between.
+    st.stepIdx=idx+1; st.reanalyzing=true;
+    chat.messages.push({role:'reanalyzing'});
+    render(); scrollBottom();
+    setTimeout(()=>{
+      chat.messages.pop();
+      st.reanalyzing=false;
+      // Same as decide() — doesn't escalate into a fresh approval card
+      // on its own even if another step is queued.
+      chat.messages.push({role:'assist', html:'<p>Reanalyzed with that context — nothing further needed right now.</p>'});
+      render(); scrollBottom();
+      toast('Answer recorded');
+    }, 2200);
+  }, 700);
+}
+function replyForInv(text, i, st){
+  const t=text.toLowerCase(); const step=i.steps[st.stepIdx];
+  if(/why|cause|root/.test(t)) return `<p>${esc(i.caseLines[0].h)}. ${esc(i.caseLines[0].s)}</p>`;
+  if(/risk|safe|revert|rollback|undo/.test(t)) return step?`<p>The pending step is <b>${esc(step.title)}</b>.${step.risk?' Risk: '+esc(step.risk)+'.':''}</p>`:'<p>Nothing is pending on this investigation right now.</p>';
+  if(/impact|customer|who/.test(t)) return `<p>${esc(i.facts.map(f=>f.l+': '+f.v).join(' · '))}</p>`;
+  if(/topolog|diagram|show|map/.test(t)) return `<p>Check the <b>View topology</b> row above for a visual of what's involved.</p>`;
+  if(/approve|yes|go ahead|do it/.test(t)&&step&&step.type!=='question'&&step.type!=='info'&&!(state.chats[i.id].decisions[st.stepIdx])){ setTimeout(()=>decide(i.id, st.stepIdx,'approve'),200); return `<p>Approving <b>${esc(step.title)}</b> now.</p>`; }
+  return `<p>On <b>${esc(i.title)}</b>: ${esc(i.summary.split('. ')[0])}. ${step?`The next thing I need from you is the ${step.type==='tool'?'tool approval':step.type==='question'?'answer':step.type==='recommend'?'recommendation approval':step.type==='info'?'optional step':'remediation approval'} above.`:'Nothing further is pending.'}</p>`;
+}
+function sendReasoning(id, text){
+  text=(text||'').trim(); if(!text) return;
+  const i=inv(id), st=state.invStatus[id], chat=markChatStarted(id);
+  chat.splitHidden=false; // sending a message always reopens a closed split
+  chat.messages.push({role:'user', text});
+  $('msgInput').value='';
+  render(); scrollBottom();
+  chat.messages.push({role:'typing'}); render(); scrollBottom();
+  setTimeout(()=>{
+    chat.messages.pop();
+    chat.messages.push({role:'assist', html: replyForInv(text, i, st)});
+    render(); scrollBottom();
+  }, 700);
+}
+
+// A conversation starter tapped from Topology or Observations drops the
+// question + its answer straight into the investigation's reasoning
+// thread (state.chats[id], same one `sendReasoning` writes to) and jumps
+// there — so it lands as the start of a real back-and-forth (composer
+// open, can ask follow-ups) instead of an inline accordion reveal with
+// nowhere to go next.
+// Same idea as askStarter below, but for the Activity tab's own
+// questions — those aren't scoped to one investigation, so this starts
+// a plain free-form conversation (state.convs) rather than writing into
+// an investigation's reasoning thread. Lands on the same real
+// back-and-forth conv screen (composer open, follow-ups work, and it
+// shows up under Chats afterward) instead of an inline accordion reveal.
+function askActivityStarter(topic){
+  const q=actQuestionText(topic), a=actAnswerHTML(topic);
+  if(!q) return;
+  const conv={id:'cv-'+Date.now(), title:q.length>42?q.slice(0,40)+'…':q, when:'now', messages:[{role:'user',text:q},{role:'typing'}]};
+  state.convs.push(conv);
+  push({screen:'conv', convId:conv.id});
+  scrollBottom();
+  setTimeout(()=>{
+    conv.messages.pop();
+    conv.messages.push({role:'assist', html:a});
+    render(); scrollBottom();
+  }, 700);
+}
+function askStarter(id, q, a){
+  const chat=markChatStarted(id);
+  chat.messages.push({role:'user', text:q});
+  chat.messages.push({role:'typing'});
+  // Stays on whatever screen the starter was tapped from (Topology or
+  // Observations) and lets it split top/bottom — same as typing into
+  // the anchored composer there would. It used to jump straight to the
+  // full reasoning screen, which was a different, inconsistent pattern
+  // from the one everything else here now follows.
+  render();
+  scrollBottom();
+  setTimeout(()=>{
+    chat.messages.pop();
+    chat.messages.push({role:'assist', html:a});
+    render(); scrollBottom();
+  }, 700);
+}
+
+/* ---- topology & observations screens ---- */
+function starterListHTML(qs, keyPrefix){
+  return `<div class="acc-list">${qs.map((qq,k)=>`<div class="acc"><button class="acc-q" data-starter="${keyPrefix}:${k}">${esc(qq.q)}</button></div>`).join('')}</div>`;
+}
+function renderTopologyScreen(id){
+  const i=inv(id), qs=topoQuestionsFor(i);
+  const topHTML = `${topologyHTML(i)}
+  <div class="sechd">Ask about this</div>
+  ${starterListHTML(qs, 'topo:'+id)}`;
+  return wrapChatSplit(id, i, topHTML);
+}
+function renderObservationsScreen(id){
+  const i=inv(id);
+  const topHTML = i.cards.map(c=>{
+    const qs=questionsFor(c);
+    return `<div class="embed" style="margin:12px 16px"><div class="hd">${c.type==='chart'?ICON.chart:ICON.eye}<span class="t">${esc(c.title)}</span></div>
+      <div class="bd">${cardBody(c)}</div>
+      ${starterListHTML(qs, 'obs:'+id+':'+c.id)}
+    </div>`;
+  }).join('');
+  return wrapChatSplit(id, i, topHTML);
+}
+
+/* ---- free-form chat screen ---- */
+function startNewChat(){ state.draftConv={id:null, title:'', when:'now', messages:[]}; push({screen:'conv', convId:'draft'}); }
+function getConv(convId){ return convId==='draft'?state.draftConv:state.convs.find(c=>c.id===convId); }
+function renderConvScreen(convId){
+  const conv=getConv(convId);
+  const feed=conv.messages.map(m=>{
+    if(m.role==='typing') return `<div class="msg assist"><div class="content"><div class="typing"><i></i><i></i><i></i></div></div></div>`;
+    if(m.role==='user') return `<div class="msg user"><div class="bubble"><p>${esc(m.text)}</p></div></div>`;
+    return `<div class="msg assist"><div class="content">${m.html}</div></div>`;
+  }).join('');
+  return `<div class="feed">${feed||'<div class="rail-empty">Ask a question to start.</div>'}</div>`;
+}
+// Matches free-typed text against one of the Activity tab's suggested
+// questions, phrased for whichever period is currently selected there —
+// so typing the exact suggested question in general chat still answers
+// with the same (period-correct) numbers as tapping it would.
+function activityAnswerForText(text){
+  const allTopics=[].concat(ACT_STAGE_META.valid.map(s=>s.key), ACT_STAGE_META.dismissed.map(s=>s.key), Object.keys(ACT_THROUGHPUT_Q));
+  const topic=allTopics.find(k=>actQuestionText(k)===text);
+  return topic?actAnswerHTML(topic):null;
+}
+function replyGeneric(text){
+  const actAns=activityAnswerForText(text);
+  if(actAns) return actAns;
+  const t=text.toLowerCase();
+  if(/headroom|transit|uplink/.test(t)) return `<p>Least transit headroom right now:</p><ul><li><b>dfw2</b> core-sw-01 Po12 — 96%</li><li><b>ord1</b> edge-rtr-01 — 78%</li><li><b>lax1</b> edge-rtr-11 — 41%</li></ul>`;
+  if(/changed|last hour|recent/.test(t)) return `<p>In the last hour: 6 BGP resets on edge-rtr-02 (ord1), a late storage backup saturating dfw2 Po12, and Cogent loss at LAX.</p>`;
+  if(/slo|budget|risk/.test(t)) return `<p>Two SLOs are burning faster than plan: <b>dc-west availability</b> and <b>dfw2 east-west latency</b>.</p>`;
+  return `<p>I can answer that best inside an investigation. ${invLink(INVESTIGATIONS[0].id)} just needs a read-only tool approval and is the fastest to unblock.</p>`;
+}
+function sendConv(convId, text){
+  text=(text||'').trim(); if(!text) return;
+  let conv=getConv(convId);
+  const isNew=!conv.id;
+  conv.messages.push({role:'user', text});
+  if(isNew){ conv.id='cv-'+Date.now(); conv.title=text.length>42?text.slice(0,40)+'…':text; state.convs.push(conv); }
+  $('msgInput').value='';
+  state.stack[state.stack.length-1].convId=conv.id;
+  render(); scrollBottom();
+  conv.messages.push({role:'typing'}); render(); scrollBottom();
+  setTimeout(()=>{
+    conv.messages.pop();
+    conv.messages.push({role:'assist', html: replyGeneric(text)});
+    render(); scrollBottom();
+  }, 700);
+}
+
+/* =======================================================================
+   Events
+   ======================================================================= */
+document.addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const top=state.stack[state.stack.length-1];
+  // Back from Topology or Observations always lands on that
+  // investigation's own summary screen — even with a chat going (split
+  // or not), that's still "the investigation," not a dead end. The chat
+  // itself isn't lost either way: it's state.chats[id], which is what
+  // the summary screen's own split pulls from, and what the Chats tab
+  // lists it under, regardless of which screen it was started from.
+  if(b.dataset.back!=null){
+    if((top.screen==='topology'||top.screen==='observations') && top.id){
+      state.stack.pop();
+      if(!state.stack[state.stack.length-1] || state.stack[state.stack.length-1].screen!=='detail'){
+        state.stack.push({screen:'detail', id:top.id});
+      }
+      return render();
+    }
+    return pop();
+  }
+  if(b.dataset.tab) return gotoTab(b.dataset.tab);
+  if(b.dataset.open) return push({screen:'detail', id:b.dataset.open});
+  if(b.dataset.viewtopo) return push({screen:'topology', id:b.dataset.viewtopo});
+  if(b.dataset.viewobs) return push({screen:'observations', id:b.dataset.viewobs});
+  if(b.dataset.filter){ state.filter=b.dataset.filter; return render(); }
+  if(b.dataset.acttab){ state.actTab=b.dataset.acttab; return render(); }
+  if(b.dataset.periodtoggle!=null){ state.actPeriodOpen=!state.actPeriodOpen; return render(); }
+  if(b.dataset.period){ state.actPeriod=b.dataset.period; state.actPeriodOpen=false; return render(); }
+  if(b.dataset.q) return askActivityStarter(b.dataset.q);
+  if(b.dataset.starter){
+    const parts=b.dataset.starter.split(':');
+    if(parts[0]==='topo'){
+      const [,id,k]=parts, qq=topoQuestionsFor(inv(id))[+k];
+      if(qq) askStarter(id, qq.q, qq.a);
+    } else if(parts[0]==='obs'){
+      const [,id,cardId,k]=parts, i=inv(id), c=i.cards.find(cc=>cc.id===cardId);
+      const qq=c&&questionsFor(c)[+k];
+      if(qq) askStarter(id, qq.q, qq.a);
+    }
+    return;
+  }
+  if(b.dataset.viewreason) return push({screen:'reasoning', id:b.dataset.viewreason});
+  if(b.dataset.closechat){ ensureChat(b.dataset.closechat).splitHidden=true; return render(); }
+  if(b.dataset.newchat!=null) return startNewChat();
+  if(b.dataset.conv) return push({screen:'conv', convId:b.dataset.conv});
+  if(b.dataset.approve!=null) return decide(top.id, +b.dataset.approve, 'approve');
+  if(b.dataset.deny!=null) return decide(top.id, +b.dataset.deny, 'deny');
+  if(b.dataset.answer!=null) return answerQuestion(top.id, +b.dataset.answer);
+  if(b.id==='msgSend') return handleSend();
+});
+function handleSend(){
+  const top=state.stack[state.stack.length-1];
+  const val=$('msgInput').value;
+  if(top.screen==='reasoning'||top.screen==='detail'||top.screen==='topology'||top.screen==='observations') return sendReasoning(top.id, val);
+  if(top.screen==='conv') return sendConv(top.convId, val);
+}
+$('msgInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); handleSend(); }
+});
+$('msgInput').addEventListener('input', e=>{
+  e.target.style.height='auto'; e.target.style.height=Math.min(132,e.target.scrollHeight)+'px';
+});
+// Closes the period menu on any click outside it — a tap on an option
+// or the toggle button itself is handled above and never reaches here
+// (this fires after, but by then actPeriodOpen is already what it
+// should be, so the redundant close is harmless).
+document.addEventListener('click', e=>{
+  if(state.actPeriodOpen && !e.target.closest('.act-period-wrap')){ state.actPeriodOpen=false; render(); }
+});
+
+// ---------- Split-view grabber (drag the divider between the brief and
+// the chat halves) ---------- Delegated, since .split-grabber is rebuilt
+// on every render — a direct listener bound to today's element would be
+// gone the moment the user sent a message or approved a step. Moves the
+// pane directly via inline style while dragging (cheap) and only writes
+// back to state, which triggers the next real render, once the drag ends.
+let splitDrag=null;
+document.addEventListener('pointerdown', e=>{
+  const grabber=e.target.closest('.split-grabber');
+  if(!grabber) return;
+  const container=grabber.closest('.detail-split');
+  const topEl=container && container.querySelector('.detail-split-top');
+  if(!container||!topEl) return;
+  const containerRect=container.getBoundingClientRect();
+  const topRect=topEl.getBoundingClientRect();
+  splitDrag={
+    id:grabber.dataset.splitgrab,
+    startY:e.clientY,
+    startPct:(topRect.height/containerRect.height)*100,
+    containerHeight:containerRect.height,
+    topEl
+  };
+  grabber.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+document.addEventListener('pointermove', e=>{
+  if(!splitDrag) return;
+  const dyPct=(e.clientY-splitDrag.startY)/splitDrag.containerHeight*100;
+  // Top can shrink all the way to 0 (chat takes the whole screen), but
+  // can't grow past the chat's own starting 50% — dragging down gives
+  // space back only down to the size the chat first opened at, not
+  // smaller. Closing it the rest of the way is what the × is for.
+  const pct=Math.min(50, Math.max(0, splitDrag.startPct+dyPct));
+  splitDrag.topEl.style.flex=`0 0 ${pct}%`;
+  splitDrag.lastPct=pct;
+});
+function endSplitDrag(){
+  if(!splitDrag) return;
+  if(splitDrag.lastPct!=null) ensureChat(splitDrag.id).splitPct=splitDrag.lastPct;
+  splitDrag=null;
+}
+document.addEventListener('pointerup', endSplitDrag);
+document.addEventListener('pointercancel', endSplitDrag);
+
+render();
+</script>
