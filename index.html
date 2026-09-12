@@ -35,14 +35,6 @@
   .pick p{margin:0;color:var(--text-secondary);flex:1}
   .pick .cta{display:inline-flex;align-items:center;gap:8px;color:var(--link);font-weight:600}
   .pick .cta svg{width:16px;height:16px;fill:currentColor}
-  .links{margin-top:32px;border-top:1px solid var(--border-subtle);padding-top:16px}
-  .links h3{margin:0 0 8px;font-size:12px;letter-spacing:.32px;text-transform:uppercase;color:var(--text-helper);font-weight:600}
-  .links dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0;font-size:13px}
-  .links dt{color:var(--text-helper)}
-  .links dd{margin:0;font-family:var(--mono);font-size:12.5px;overflow-wrap:anywhere}
-  .links dd a{text-decoration:none}
-  .links dd a:hover{text-decoration:underline}
-  .foot{color:var(--text-helper);font-size:12px;margin-top:24px}
 </style>
 </head>
 <body>
@@ -66,27 +58,6 @@
     </a>
   </div>
 
-  <div class="links">
-    <h3>Direct links</h3>
-    <dl>
-      <dt>Cover</dt><dd><a href="" id="linkCover"></a></dd>
-      <dt>Desktop</dt><dd><a href="desktop.html" id="linkDesktop"></a></dd>
-      <dt>Mobile</dt><dd><a href="mobile.html" id="linkMobile"></a></dd>
-    </dl>
-  </div>
-  <p class="foot">Prototype only. Layout, data, and behavior are illustrative.</p>
 </main>
-<script>
-  // Show each page's absolute address so it can be copied or shared directly.
-  (function(){
-    var here=new URL(location.href); here.hash=''; here.search='';
-    var cover=here.href;
-    var d=document.getElementById('pickDesktop').getAttribute('href'), m=document.getElementById('pickMobile').getAttribute('href');
-    var lc=document.getElementById('linkCover'), ld=document.getElementById('linkDesktop'), lm=document.getElementById('linkMobile');
-    lc.href=cover; lc.textContent=cover;
-    ld.textContent=new URL(d, cover).href;
-    lm.textContent=new URL(m, cover).href;
-  })();
-</script>
 </body>
 </html>
