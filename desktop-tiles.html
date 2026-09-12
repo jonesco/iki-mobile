@@ -109,9 +109,6 @@
   .tile-hd .tile-n{font-size:12px;color:var(--text-primary);background:#525252;border-radius:9px;min-width:18px;height:18px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
   .tile-hd .chev{width:14px;height:14px;color:var(--text-helper);transition:transform .15s ease;flex:none}
   .tile.open .tile-hd .chev{transform:rotate(180deg)}
-  .tile-preview{padding:0 12px 12px 40px;font-size:12px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .tile-preview .more{color:var(--text-helper)}
-  .tile.open .tile-preview{display:none}
   .tile-body{display:none;border-top:1px solid var(--border-strong)}
   .tile.open .tile-body{display:block}
   .tile .inv{background:transparent;border-bottom:1px solid var(--border-strong)}
@@ -1701,10 +1698,8 @@ function renderRail(){
     const hasActive=items.some(r=>r.i.id===activeId);
     const open=hasActive||!!state.tilesOpen[t.key];
     const showNeed=t.key==='progress'||t.key==='dismissed';
-    const preview=items[0].i.title+(items.length>1?` <span class="more">· +${items.length-1} more</span>`:'');
     return `<div class="tile ${open?'open':''} ${hasActive?'has-active':''}" data-tilekey="${t.key}">
       <button class="tile-hd" data-tile="${t.key}" aria-expanded="${open}"><span class="need-badge ${t.cls}">${t.icon}</span><span class="tile-t">${t.label}</span><span class="tile-n">${items.length}</span><svg class="icon chev" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button>
-      <div class="tile-preview">${esc(items[0].i.title)}${items.length>1?` <span class="more">· +${items.length-1} more</span>`:''}</div>
       <div class="tile-body">${items.map(({i,need})=>`<button class="inv ${i.id===activeId?'active':''}" data-inv="${i.id}">
         <span class="body">
           <span class="title">${esc(i.title)}</span>
