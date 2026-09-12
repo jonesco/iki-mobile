@@ -471,10 +471,251 @@
     .chat{padding:16px}.prompt{padding:8px 16px 16px}
     .resize-h{display:none}
   }
+
+  /* ---- Investigations table (ported from demos/dashboard2/investigations.html) ---- */
+  .inv-ws{position:absolute;inset:0;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .inv-ws[hidden]{display:none}
+  .inv-ws .page-header-band{flex:none;display:flex;align-items:flex-start;gap:16px;padding:32px 24px 24px;background:#242424}
+  .inv-ws .page-header{flex:1;min-width:0}
+  .inv-ws .page-title{margin:0;font-size:2.25rem;line-height:1.2;font-weight:300;letter-spacing:-.02em}
+  .inv-ws .page-subtitle{margin:.25rem 0 0;color:var(--text-secondary);font-size:1rem;line-height:1.4}
+  .inv-ws .content{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 24px 24px}
+  .inv-ws .table-shell{margin-top:24px}
+  .investigations-table tbody tr.row{cursor:pointer}
+  .toolbar-icon{inline-size:1.25rem;block-size:1.25rem;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+  .table-icon{inline-size:1rem;block-size:1rem;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+  .toolbar-search input::-webkit-search-cancel-button{filter:invert(.7)}
+  .table-empty-state .btn{height:40px;padding:0 16px;gap:8px}
+.stage-date-range[hidden]{display: none;}
+.stage-date-range{display: flex; align-items: center; gap: 0.75rem; padding: 0 1rem; border-right: 1px solid rgba(255, 255, 255, 0.16);}
+.date-range-quickpick{position: relative; display: flex;}
+.date-range-quickpick.is-open .date-range-quickpick__menu{display: block;}
+.date-range-quickpick__menu{min-inline-size: 10rem; max-block-size: none;}
+.date-range-quickpick__menu .toolbar-filter__option{min-height: 0; padding: 0.5625rem 0.875rem; font-size: 0.8125rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);}
+.date-range-quickpick__menu .toolbar-filter__option:last-child{border-bottom: 0;}
+.date-range-selector{display: flex; align-items: center; gap: 0.5rem; padding: 0; border: 0; background: transparent; color: #f4f4f4;}
+.date-range-selector:hover,
+        .date-range-selector:focus-visible{cursor: pointer; outline: none;}
+.date-range-selector__copy{display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0;}
+.date-range-selector__metric{color: inherit; font-size: 1rem; white-space: nowrap;}
+.date-range-selector__range{display: none;}
+.date-range-selector__icon{inline-size: 1rem; block-size: 1rem; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;}
+.topbar-icon,
+        .rail-icon,
+        .send-icon,
+        .metric-icon,
+        .toolbar-icon,
+        .table-icon{inline-size: 1.25rem; block-size: 1.25rem; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;}
+.icon-button:hover,
+        .icon-button:focus-visible,
+        .rail-button:hover,
+        .rail-button:focus-visible,
+        .composer-button:hover,
+        .composer-button:focus-visible,
+        .date-range-selector:hover,
+        .date-range-selector:focus-visible,
+        .toolbar-filter:hover,
+        .toolbar-filter:focus-visible,
+        .pagination-button:hover,
+        .pagination-button:focus-visible{background: rgba(255, 255, 255, 0.08); outline: none;}
+.table-shell{display: flex; flex: 0 1 auto; flex-direction: column; min-height: 0; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(38, 38, 38, 0.9); overflow: hidden; margin-top: 34px;}
+.table-toolbar{display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto auto 3rem; align-items: stretch; min-height: 4rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: #262626;}
+.toolbar-filter{position: relative; display: flex; align-items: stretch; min-width: 0; border-right: 1px solid rgba(255, 255, 255, 0.16); background: transparent;}
+.toolbar-filter__trigger{display: inline-flex; align-items: center; justify-content: space-between; gap: 0.75rem; inline-size: 100%; min-width: 0; padding: 0 1rem; border: 0; background: transparent; color: #f4f4f4; font-size: 1rem; font-weight: 400; text-align: left; cursor: pointer;}
+.toolbar-filter__trigger-label{display: flex; align-items: center; gap: 0.5rem; min-width: 0; overflow: hidden;}
+.toolbar-filter__label{overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.toolbar-filter__status-dot{flex-shrink: 0; width: 12px; height: 12px; display: inline-flex; align-items: center; justify-content: center;}
+.toolbar-filter__status-dot--valid{color: #42be65;}
+.toolbar-filter__status-dot--dismissed{color: #fa4d56;}
+.toolbar-filter__status-dot--all{color: #4589ff;}
+.toolbar-filter__status-dot--tracked{color: #f4f4f4;}
+.toolbar-filter.has-active-filter .toolbar-filter__trigger{color: #ffffff;}
+#contextFilterMenu,
+        #stageFilterMenu{min-inline-size: 0; inline-size: max-content; max-inline-size: min(90vw, 22rem);}
+.toolbar-filter__option:disabled{color: #8d8d8d; cursor: not-allowed; pointer-events: none;}
+.toolbar-filter__option:disabled .toolbar-filter__option-count{color: inherit; opacity: 0.6;}
+.toolbar-filter__option{display: flex; align-items: center; gap: 0.5rem;}
+.toolbar-filter__chevron{inline-size: 1.25rem; block-size: 1.25rem; flex: 0 0 auto; fill: none; stroke: #ffffff; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;}
+.toolbar-filter__menu{position: fixed; z-index: 20; display: none; min-inline-size: 16rem; max-block-size: min(60vh, 24rem); overflow-y: auto; padding: 0.25rem 0; border: 1px solid rgba(255, 255, 255, 0.16); background: #262626; box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.35);}
+.toolbar-filter.is-open .toolbar-filter__menu{display: block;}
+.toolbar-filter__option{display: flex; align-items: center; inline-size: 100%; min-width: 0; min-height: 3rem; padding: 0 1rem; border: 0; background: transparent; color: #c6c6c6; font-size: 0.9375rem; text-align: left; white-space: nowrap; cursor: pointer; transition: background-color 150ms ease, color 150ms ease;}
+.toolbar-filter__option:hover,
+        .toolbar-filter__option:focus-visible{color: #f4f4f4; background: rgba(255, 255, 255, 0.08); outline: none;}
+.toolbar-filter__option.is-active{color: #f4f4f4; background: rgba(255, 255, 255, 0.08);}
+.toolbar-filter__option-label{flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;}
+.toolbar-filter__option-count{flex-shrink: 0; margin-inline-start: 0.75rem; font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; color: #8d8d8d; font-variant-numeric: tabular-nums;}
+.toolbar-search{display: flex; align-items: center; gap: 0.75rem; min-width: 0; padding: 0 1rem; color: #8d8d8d; border-right: 1px solid rgba(255, 255, 255, 0.08);}
+.toolbar-search input{width: 100%; border: 0; background: transparent; color: #f4f4f4; font-size: 1rem; outline: none;}
+.toolbar-search input::placeholder{color: #8d8d8d;}
+.toolbar-actions{grid-column: 6; display: inline-flex; align-items: center; justify-content: center; color: #c6c6c6;}
+.table-scroll{flex: 0 1 auto; min-height: 0; overflow: auto;}
+.table-empty-state[hidden]{display: none;}
+.table-empty-state{display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; padding: 4rem 1.5rem; text-align: center;}
+.table-empty-state__title{margin: 0; font-size: 1rem; font-weight: 500; color: #f4f4f4;}
+.table-empty-state__sub{margin: 0; max-width: 28rem; font-size: 0.875rem; line-height: 1.5; color: #c6c6c6;}
+.table-empty-state__action{margin-top: 0.25rem;}
+.investigations-table{width: 100%; border-collapse: collapse; table-layout: fixed;}
+.investigations-table thead th{padding: 0.75rem 0.75rem; background: rgba(82, 82, 82, 0.72); color: #f4f4f4; font-size: 0.875rem; font-weight: 600; text-align: left; vertical-align: bottom; border-right: 1px solid rgba(255, 255, 255, 0.08); position: sticky; top: 0; z-index: 3;}
+.investigations-table thead th:last-child,
+        .investigations-table tbody td:last-child{border-right: 0;}
+.investigations-table thead th.observations-group{text-align: left;}
+.observations-subhead{display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; margin-top: 0.5rem; font-size: 0.8125rem; font-weight: 500; color: #c6c6c6;}
+.observations-subhead span{display: inline-flex; align-items: center; gap: 0.35rem;}
+.observations-subhead .metrics{color: #f4f4f4;}
+.observations-subhead .alarms{color: #f4f4f4;}
+.observations-subhead .metrics .table-icon{color: #78a9ff;}
+.observations-subhead .alarms .table-icon{color: #ff7eb6;}
+.symptoms-col-th{text-align: left; color: #f4f4f4; font-size: 0.8125rem; font-weight: 500;}
+.symptoms-col-label{display: inline-flex; align-items: center; gap: 0.35rem; min-inline-size: 6.5rem; white-space: nowrap;}
+.sort-col-label{display: inline-flex; align-items: center; gap: 0.3rem;}
+.sort-col-arrow{flex-shrink: 0; color: #8d8d8d; transition: transform 150ms ease; opacity: 0;}
+.sort-col-th .sort-col-arrow{opacity: 1;}
+.sort-col-arrow.is-asc{transform: rotate(180deg);}
+.investigations-table thead th.sort-col-th{background: rgba(110, 110, 110, 0.72);}
+.symptoms-col-th .table-icon{color: #42be65; width: 14px; height: 14px; flex: 0 0 auto;}
+.investigations-table tbody td{padding: 0.75rem 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08); border-right: 1px solid rgba(255, 255, 255, 0.08); color: #c6c6c6; font-size: 0.875rem; line-height: 1.25; vertical-align: top; background: rgba(38, 38, 38, 0.78); transition: background 70ms cubic-bezier(0, 0, 0.38, 0.9);}
+.investigations-table tbody tr:hover td{background: rgba(51, 51, 51, 0.78);}
+.investigations-table tbody td:nth-child(2){position: relative;}
+.device-name-cell{display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;}
+.copy-device-btn{opacity: 0; display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; padding: 0; border: none; background: transparent; color: #c6c6c6; cursor: pointer; transition: opacity 70ms cubic-bezier(0, 0, 0.38, 0.9); flex-shrink: 0;}
+.investigations-table tbody tr:hover .copy-device-btn{opacity: 1;}
+.copy-device-btn:hover{background: #333333; color: #f4f4f4;}
+.copy-device-btn:active{background: #6f6f6f;}
+.copy-device-btn svg{width: 1rem; height: 1rem;}
+.ticket-cell{display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem;}
+.ticket-headline{font-size: 0.8125rem; color: #c6c6c6; line-height: 1.4; white-space: normal;}
+.ticket-pill{display: inline-flex; align-items: center; min-height: 1.25rem; padding: 0 0.625rem; border-radius: 999px; background: #525252; color: #e0e0e0; font-size: 0.75rem; line-height: 1; white-space: nowrap;}
+.ticket-pill-row{display: flex; align-items: center; gap: 0.375rem;}
+.track-star{display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 1rem; height: 1rem; padding: 0; background: none; border: 0; color: #8d8d8d; cursor: pointer;}
+.track-star svg{width: 0.875rem; height: 0.875rem; fill: none; stroke: currentColor; stroke-width: 1.3;}
+.track-star:hover{color: #f4f4f4;}
+.track-star.is-tracked{color: #f4f4f4;}
+.track-star.is-tracked svg{fill: currentColor; stroke: currentColor;}
+.stage-text{color: #c6c6c6;}
+.stage-text > .approval-badge,
+        .stage-text > .needs-input-badge,
+        .stage-text > .merged-target{display: block; width: fit-content; margin-top: 0.35rem; margin-left: 0;}
+.approval-badge{display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; color: #f1c21b; flex-shrink: 0; position: relative;}
+.approval-badge svg{width: 14px; height: 14px; display: block;}
+.approval-badge::after{content: 'Needs approval'; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #f4f4f4; color: #161616; font-size: 12px; font-family: inherit; line-height: 1; white-space: nowrap; padding: 5px 8px; border-radius: 2px; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; z-index: 100;}
+.approval-badge:hover::after{opacity: 1;}
+.approval-badge.is-scheduled{color: #8a3ffc;}
+.approval-badge.is-scheduled::after{content: 'Scheduled';}
+.approval-badge.is-testing{color: #8a3ffc;}
+.approval-badge.is-testing::after{content: 'Testing';}
+.approval-badge.is-confirmed{color: #24a148;}
+.approval-badge.is-confirmed::after{content: 'Applied';}
+.needs-input-badge{display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; color: #d02670; flex-shrink: 0; position: relative;}
+.needs-input-badge svg{width: 14px; height: 14px; display: block;}
+.needs-input-badge::after{content: 'Needs your input'; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #f4f4f4; color: #161616; font-size: 12px; font-family: inherit; line-height: 1; white-space: nowrap; padding: 5px 8px; border-radius: 2px; pointer-events: none; opacity: 0; transition: opacity 0.15s ease; z-index: 100;}
+.needs-input-badge:hover::after{opacity: 1;}
+.needs-input-badge.is-answered{color: #24a148;}
+.needs-input-badge.is-answered::after{content: 'Responded';}
+.merged-target{display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 0.35rem; max-inline-size: 100%; min-inline-size: 0; color: #c6c6c6; font-size: 0.75rem; line-height: 1.2;}
+.merged-target__ticket{display: inline-flex; align-items: center; max-inline-size: 100%; min-inline-size: 0; min-height: 1.25rem; padding: 0 0.5rem; background: #393939; color: #e0e0e0; font-size: 0.75rem; line-height: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.count-cell{color: #f4f4f4;}
+.table-footer{display: grid; flex: 0 0 auto; grid-template-columns: 10.25rem 1fr auto auto auto; min-height: 2.6rem; border-top: 1px solid rgba(255, 255, 255, 0.08); background: rgba(38, 38, 38, 0.96); color: #c6c6c6; font-size: 0.875rem;}
+.footer-cell{display: flex; align-items: center; gap: 0.5rem; padding: 0 1rem; border-right: 1px solid rgba(255, 255, 255, 0.08);}
+.footer-cell:last-child{border-right: 0;}
+.footer-cell--page{min-width: 7.75rem; justify-content: center;}
+.pagination-button{inline-size: 3rem; justify-content: center; padding: 0; color: #f4f4f4; background: transparent; border: 0;}
+.pagination-button:disabled{color: #6f6f6f; cursor: not-allowed;}
+.pagination-button:disabled:hover,
+        .pagination-button:disabled:focus-visible{background: transparent;}
+@media (max-width: 960px){.table-toolbar{grid-template-columns: 1fr;}}
+@media (max-width: 960px){.toolbar-actions{grid-column: auto;}}
+@media (max-width: 960px){.table-footer{grid-template-columns: 10.25rem 1fr auto auto auto; min-height: 2.6rem;}}
+@media (max-width: 960px){.toolbar-filter,
+            .toolbar-search,
+            .footer-cell{border-right: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); min-height: 3rem;}}
+@media (max-width: 960px){.table-footer .footer-cell{min-height: 2.6rem; border-right: 1px solid rgba(255, 255, 255, 0.08); border-bottom: 0;}}
+@media (max-width: 960px){.table-footer .footer-cell:last-child{border-right: 0;}}
+@media (max-width: 960px){.footer-cell:last-child{border-bottom: 0;}}
+@media (max-width: 960px){.investigations-table{min-width: 60rem;}}
+.timeframe-modal[hidden]{display: none;}
+.timeframe-modal{position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 2rem; background: rgba(0, 0, 0, 0.5);}
+.timeframe-modal__dialog{inline-size: min(82rem, calc(100vw - 4rem)); max-block-size: calc(100vh - 4rem); overflow: auto; background: #262626; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 2rem 4rem rgba(0, 0, 0, 0.45);}
+.timeframe-modal__body{padding: 2rem;}
+.timeframe-modal__title{display: flex; align-items: center; justify-content: space-between; margin: 0 0 2rem; font-size: 1.625rem; font-weight: 400; letter-spacing: 0;}
+.timeframe-preset-grid{display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 3.75rem;}
+.timeframe-preset--all-time{grid-column: 1 / -1;}
+.timeframe-preset{display: flex; align-items: center; justify-content: space-between; min-block-size: 4.25rem; padding: 0 1rem; border: 1px solid transparent; background: #393939; color: #78a9ff; cursor: pointer; transition: border-color 120ms ease, color 120ms ease, background 120ms ease;}
+.timeframe-preset:hover,
+        .timeframe-preset:focus-visible{border-color: #4589ff; outline: none;}
+.timeframe-preset.is-selected{border-color: #6f6f6f; color: #f4f4f4;}
+.timeframe-preset__label{font-size: 1rem; font-weight: 400;}
+.timeframe-preset__check{inline-size: 1.5rem; block-size: 1.5rem; opacity: 0; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;}
+.timeframe-preset.is-selected .timeframe-preset__check{opacity: 1;}
+.timeframe-preset.is-dirty .timeframe-preset__check{opacity: 0;}
+.timeframe-custom{position: relative;}
+.timeframe-custom__heading{display: flex; align-items: center; justify-content: space-between; margin: 0 0 1rem; font-size: 1rem; font-weight: 600;}
+.timezone-toggle{display: flex; align-items: center; gap: 0.5rem;}
+.timezone-toggle__label{font-size: 0.75rem; font-weight: 400; color: #c6c6c6;}
+.timezone-toggle__group{display: inline-flex; border: 1px solid #6f6f6f; border-radius: 4px; overflow: hidden;}
+.timezone-toggle__button{padding: 6px 12px; border: 0; background: transparent; color: #c6c6c6; font-size: 0.75rem; font-weight: 400; cursor: pointer; transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease; border-right: 1px solid #6f6f6f;}
+.timezone-toggle__button:last-child{border-right: 0;}
+.timezone-toggle__button:hover{background: rgba(255, 255, 255, 0.08);}
+.timezone-toggle__button:focus-visible{outline: 2px solid #4589ff; outline-offset: -2px; z-index: 1;}
+.timezone-toggle__button[aria-checked="true"]{background: #0f62fe; color: #ffffff;}
+.timeframe-slider{position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.5rem; margin-bottom: 1rem; color: #c6c6c6;}
+.timeframe-slider__edge{font-size: 1.125rem; line-height: 1; color: #f4f4f4;}
+.timeframe-slider__track{position: relative; block-size: 2rem;}
+.timeframe-slider__line,
+        .timeframe-slider__selection{position: absolute; inset-block-start: 50%; transform: translateY(-50%); pointer-events: none;}
+.timeframe-slider__line{inset-inline: 0; block-size: 2px; background: rgba(244, 244, 244, 0.92);}
+.timeframe-slider__selection{block-size: 8px; background: #0f62fe;}
+.timeframe-slider__thumb{position: absolute; inset-block-start: 50%; inline-size: 1rem; block-size: 1rem; border: 2px solid #ffffff; border-radius: 50%; background: #161616; transform: translate(-50%, -50%); cursor: ew-resize;}
+.timeframe-slider__thumb:focus-visible{outline: 2px solid #4589ff; outline-offset: 2px;}
+.timeframe-slider__labels{display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0.5rem; margin-bottom: 3.5rem; color: #c6c6c6;}
+.timeframe-slider__label{font-size: 0.875rem; line-height: 1.35; text-align: center; white-space: pre-line;}
+.timeframe-field-row{display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto minmax(0, 1fr) minmax(0, 1fr); gap: 0.75rem; align-items: end;}
+.timeframe-field{display: flex; align-items: center; justify-content: space-between; min-block-size: 3.5rem; padding: 0 1rem; border-bottom: 1px solid #8d8d8d; background: #393939; color: #f4f4f4;}
+.timeframe-field__value{font-size: 1rem; display: flex; align-items: center; justify-content: space-between; width: 100%;}
+.timeframe-field__timezone{font-size: 0.875rem; color: #8d8d8d; margin-left: auto; padding-left: 0.75rem;}
+.timeframe-field__icon{inline-size: 1.25rem; block-size: 1.25rem; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; color: #c6c6c6;}
+.timeframe-field-separator{padding-bottom: 0.9rem; font-size: 1rem; color: #f4f4f4;}
+.timeframe-preset-grid{display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 3.75rem;}
+.timeframe-preset--all-time{grid-column: 1 / -1;}
+.timeframe-preset{display: flex; align-items: center; justify-content: space-between; min-block-size: 4.25rem; padding: 0 1rem; border: 1px solid transparent; background: #393939; color: #78a9ff; cursor: pointer; transition: border-color 120ms ease, color 120ms ease, background 120ms ease;}
+.timeframe-preset:hover,
+        .timeframe-preset:focus-visible{border-color: #4589ff; outline: none;}
+.timeframe-preset.is-selected{border-color: #6f6f6f; color: #f4f4f4;}
+.timeframe-preset__label{font-size: 1rem; font-weight: 400;}
+.timeframe-preset__check{inline-size: 1.5rem; block-size: 1.5rem; opacity: 0; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;}
+.timeframe-preset.is-selected .timeframe-preset__check{opacity: 1;}
+.timeframe-preset.is-dirty .timeframe-preset__check{opacity: 0;}
+.timeframe-modal__footer{display: grid; grid-template-columns: 1fr 1fr;}
+.timeframe-modal__footer-button{min-block-size: 4.75rem; border: 0; padding: 0 1rem; font-size: 1rem; text-align: left; cursor: pointer;}
+.timeframe-modal__footer-button--cancel{background: #6f6f6f; color: #f4f4f4;}
+.timeframe-modal__footer-button--apply{background: #0f62fe; color: #ffffff;}
+.timeframe-modal__footer-button--apply:hover,
+        .timeframe-modal__footer-button--apply:focus-visible{background: #0353e9; outline: none;}
+.timeframe-modal__footer-button--cancel:hover,
+        .timeframe-modal__footer-button--cancel:focus-visible{background: #808080; outline: none;}
+.timeframe-field{position: relative; cursor: pointer;}
+.timeframe-field--active{outline: 2px solid #4589ff; outline-offset: -2px;}
+.mini-cal{position: absolute; z-index: 30; inline-size: 17rem; padding: 0.75rem; background: #262626; border: 1px solid #393939; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); color: #f4f4f4; font-size: 0.875rem;}
+.mini-cal[hidden]{display: none;}
+.mini-cal__header{display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;}
+.mini-cal__nav{display: inline-flex; align-items: center; justify-content: center; inline-size: 2rem; block-size: 2rem; border: 0; background: transparent; color: #f4f4f4; cursor: pointer;}
+.mini-cal__nav:hover,
+        .mini-cal__nav:focus-visible{background: rgba(255, 255, 255, 0.08); outline: none;}
+.mini-cal__nav-icon{inline-size: 1rem; block-size: 1rem; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;}
+.mini-cal__title{font-weight: 600;}
+.mini-cal__weekdays,
+        .mini-cal__days{display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px;}
+.mini-cal__weekday{padding: 0.25rem 0; text-align: center; color: #c6c6c6; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;}
+.mini-cal__day{display: inline-flex; align-items: center; justify-content: center; block-size: 2rem; border: 0; background: transparent; color: #f4f4f4; font: inherit; font-size: 0.8125rem; cursor: pointer;}
+.mini-cal__day:hover,
+        .mini-cal__day:focus-visible{background: rgba(255, 255, 255, 0.08); outline: none;}
+.mini-cal__day--muted{color: #8d8d8d;}
+.mini-cal__day--in-range{background: rgba(69, 137, 255, 0.18);}
+.mini-cal__day--selected{background: #0f62fe; color: #ffffff;}
+.mini-cal__day:disabled{color: #4d4d4d; cursor: not-allowed;}
+.timeframe-slider__thumb-label{position: absolute; inset-block-start: -1.5rem; inset-inline-start: 50%; transform: translateX(-50%); padding: 2px 6px; background: rgba(38, 38, 38, 0.96); border: 1px solid rgba(255, 255, 255, 0.12); color: #f4f4f4; font-size: 0.6875rem; white-space: nowrap; pointer-events: none;}
 </style>
 
 <header class="hdr">
-  <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v1H2zm0 4.5h12v1H2zM2 12h12v1H2z"/></svg>
   <span class="brand"><b>IBM</b>Network Intelligence</span>
   <span class="spacer"></span>
   <span class="avatar" title="Wes">WJ</span>
@@ -630,6 +871,115 @@
           <tbody id="wsTbody"></tbody>
         </table>
       </div>
+
+      <!-- Investigations: the full table from demos/dashboard2/investigations.html -->
+      <div class="inv-ws" id="invWs" hidden>
+        <div class="page-header-band">
+          <header class="page-header">
+            <h1 class="page-title">Investigations</h1>
+            <p class="page-subtitle">Summary of autonomous investigations, detailing detected issues, their analysis, and progress toward resolution.</p>
+          </header>
+          <button class="circle-x" id="invWsClose" aria-label="Close table view"><svg class="icon" viewBox="0 0 16 16"><path d="M12 4.7l-.7-.7L8 7.3 4.7 4l-.7.7L7.3 8 4 11.3l.7.7L8 8.7l3.3 3.3.7-.7L8.7 8z"/></svg></button>
+        </div>
+        <div class="content">
+          <section class="table-shell" aria-label="Investigations" id="investigationsTableShell">
+            <div class="table-toolbar">
+              <div class="toolbar-filter" id="contextFilterContainer">
+                <button class="toolbar-filter__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Filter by investigation context" id="contextFilterTrigger">
+                  <span class="toolbar-filter__trigger-label">
+                    <span class="toolbar-filter__status-dot toolbar-filter__status-dot--valid" id="toolbarFilterDot" aria-hidden="true"></span>
+                    <span class="toolbar-filter__label" id="toolbarFilterTriggerLabel">Valid</span>
+                  </span>
+                  <svg class="toolbar-filter__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+                </button>
+                <div class="toolbar-filter__menu toolbar-filter__menu--context" role="listbox" aria-label="Investigation context" id="contextFilterMenu"></div>
+              </div>
+              <div class="toolbar-filter" id="stageFilterContainer">
+                <button class="toolbar-filter__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Filter by stage or outcome" id="stageFilterTrigger">
+                  <span class="toolbar-filter__label" id="stageFilterTriggerLabel">All</span>
+                  <svg class="toolbar-filter__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+                </button>
+                <div class="toolbar-filter__menu" role="listbox" aria-label="Filter by stage or outcome" id="stageFilterMenu"></div>
+              </div>
+              <label class="toolbar-search" aria-label="Search investigations">
+                <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="4.5"></circle><path d="M13.5 13.5 19 19"></path></svg>
+                <input type="search" placeholder="Search by ticket number or keyword" id="investigationSearchInput">
+              </label>
+              <div class="toolbar-filter" id="viewModeFilterContainer">
+                <button class="toolbar-filter__trigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Filter and sort mode" id="viewModeFilterTrigger">
+                  <span class="toolbar-filter__label" id="viewModeFilterTriggerLabel">Last activity</span>
+                  <svg class="toolbar-filter__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+                </button>
+                <div class="toolbar-filter__menu" role="listbox" aria-label="Filter and sort mode" id="viewModeFilterMenu">
+                  <button class="toolbar-filter__option is-active" type="button" data-view-mode="all" role="option">Last activity</button>
+                  <button class="toolbar-filter__option" type="button" data-view-mode="range" role="option">Event date range</button>
+                  <button class="toolbar-filter__option" type="button" data-view-mode="approval" role="option"><span id="approvalFilterLabel">Needs approval</span></button>
+                  <button class="toolbar-filter__option" type="button" data-view-mode="needsInput" role="option"><span id="needsInputFilterLabel">Needs input</span></button>
+                </div>
+              </div>
+              <div class="stage-date-range" id="stageDateRange">
+                <div class="date-range-quickpick" id="dateRangeQuickpick">
+                  <button class="date-range-selector" type="button" aria-label="Open time frame options" aria-haspopup="listbox" aria-expanded="false" id="dateRangeTrigger">
+                    <div class="date-range-selector__copy">
+                      <span class="date-range-selector__metric" id="dateRangeMetric">Last 24 hours</span>
+                      <span class="date-range-selector__range" id="dateRangeLabel"></span>
+                    </div>
+                    <svg class="date-range-selector__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+                  </button>
+                  <div class="toolbar-filter__menu date-range-quickpick__menu" role="listbox" aria-label="Time frame presets" id="dateRangeQuickMenu">
+                    <button class="toolbar-filter__option" type="button" role="option" data-quick-preset="Last hour">Last hour</button>
+                    <button class="toolbar-filter__option" type="button" role="option" data-quick-preset="Last 12 hours">Last 12 hours</button>
+                    <button class="toolbar-filter__option" type="button" role="option" data-quick-preset="Last 24 hours">Last 24 hours</button>
+                    <button class="toolbar-filter__option" type="button" role="option" data-quick-preset="Yesterday">Yesterday</button>
+                    <button class="toolbar-filter__option" type="button" role="option" data-quick-preset="Last seven days">Last seven days</button>
+                    <button class="toolbar-filter__option" type="button" role="option" data-quick-preset="Last 30 days">Last 30 days</button>
+                    <button class="toolbar-filter__option" type="button" role="option" data-quick-preset="All time">All time</button>
+                    <button class="toolbar-filter__option" type="button" role="option" id="dateRangeCustomOption">Custom…</button>
+                  </div>
+                </div>
+              </div>
+              <div class="toolbar-actions" aria-hidden="true">
+                <svg class="toolbar-icon" viewBox="0 0 24 24"><path d="M5 7h5"></path><path d="M5 12h5"></path><path d="M5 17h5"></path><rect x="14" y="5" width="5" height="4"></rect><rect x="14" y="10" width="5" height="4"></rect><rect x="14" y="15" width="5" height="4"></rect></svg>
+              </div>
+            </div>
+            <div class="table-scroll" id="tableScroll">
+              <table class="investigations-table">
+                <thead>
+                  <tr>
+                    <th style="width: 25%;">Ticket</th>
+                    <th style="width: 12%;">Device name</th>
+                    <th style="width: 12%;" id="dateRangeColHeader"><span class="sort-col-label">Event date range <svg class="sort-col-arrow" id="dateRangeSortArrow" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10"/><path d="m4 9 4 4 4-4"/></svg></span></th>
+                    <th style="width: 12%;" class="sort-col-th" id="lastActivityColHeader"><span class="sort-col-label">Last activity <svg class="sort-col-arrow" id="updatedSortArrow" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10"/><path d="m4 9 4 4 4-4"/></svg></span></th>
+                    <th style="width: 12%;" id="stageColHeader">Stage</th>
+                    <th class="symptoms-col-th" style="width: 10%;"><span class="symptoms-col-label"><svg class="table-icon" viewBox="0 0 32 32" fill="currentColor" stroke="none" aria-hidden="true"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12z"></path><path d="M16 8a8 8 0 1 0 8 8 8 8 0 0 0-8-8zm0 14a6 6 0 1 1 6-6 6 6 0 0 1-6 6z"></path><path d="M16 12a4 4 0 1 0 4 4 4 4 0 0 0-4-4zm0 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2z"></path></svg> Symptoms</span></th>
+                    <th class="observations-group" colspan="3" style="width: 24%;">
+                      <div>Observations</div>
+                      <div class="observations-subhead" style="grid-template-columns: 1fr 1fr 1fr;">
+                        <span class="metrics"><svg class="table-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16V8"></path><path d="M10 16V11"></path><path d="M15 16V6"></path><path d="M20 16v-4"></path></svg> Metric</span>
+                        <span class="alarms"><svg class="table-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 4 19h16L12 4Z"></path><path d="M12 9v4"></path><path d="M12 16h.01"></path></svg> Alarm</span>
+                        <span>Total</span>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="invTbody"></tbody>
+              </table>
+            </div>
+            <div class="table-empty-state" id="tableEmptyState" hidden>
+              <p class="table-empty-state__title" id="tableEmptyStateTitle">No investigations in this time range.</p>
+              <p class="table-empty-state__sub" id="tableEmptyStateSub"></p>
+              <button class="btn btn-primary table-empty-state__action" type="button" id="tableEmptyStateAction" hidden>Search all time</button>
+            </div>
+            <footer class="table-footer" id="tableFooter">
+              <div class="footer-cell"><span>Items per page:</span><span>10</span><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></div>
+              <div class="footer-cell" id="tableResultsSummary">1–5 of 5 items</div>
+              <div class="footer-cell footer-cell--page"><span id="tableCurrentPage">1</span><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg><span id="tablePageSummary">of 1 pages</span></div>
+              <button class="footer-cell pagination-button" type="button" aria-label="Previous page" id="tablePrevPage"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"></path></svg></button>
+              <button class="footer-cell pagination-button" type="button" aria-label="Next page" id="tableNextPage"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></button>
+            </footer>
+          </section>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -662,6 +1012,63 @@
   </aside>
 </div>
 <div class="toast" id="toast"></div>
+<div class="timeframe-modal" id="timeframeModal" hidden>
+  <div class="timeframe-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="timeframeModalTitle">
+    <div class="timeframe-modal__body">
+      <h2 class="timeframe-modal__title" id="timeframeModalTitle">
+        <span>Select time frame</span>
+        <div class="timezone-toggle">
+          <span class="timezone-toggle__label">Showing in:</span>
+          <div class="timezone-toggle__group" role="radiogroup" aria-label="Time display timezone">
+            <button class="timezone-toggle__button" type="button" role="radio" aria-checked="true" data-timezone="local" id="timezoneLocal">Local (<span id="localTimezoneAbbr">CDT</span>)</button>
+            <button class="timezone-toggle__button" type="button" role="radio" aria-checked="false" data-timezone="utc" id="timezoneUTC">UTC</button>
+          </div>
+        </div>
+      </h2>
+      <div class="timeframe-preset-grid" role="list" aria-label="Time frame presets" id="timeframePresetGrid"></div>
+      <div class="timeframe-custom">
+        <h3 class="timeframe-custom__heading">Time range</h3>
+        <div class="timeframe-slider">
+          <span class="timeframe-slider__edge" aria-hidden="true">◀</span>
+          <div class="timeframe-slider__track" id="timeframeSliderTrack">
+            <div class="timeframe-slider__line"></div>
+            <div class="timeframe-slider__selection" id="timeframeSliderSelection"></div>
+            <button class="timeframe-slider__thumb" type="button" id="timeframeSliderStart" aria-label="Adjust start of time range"><span class="timeframe-slider__thumb-label" id="sliderStartLabel" hidden></span></button>
+            <button class="timeframe-slider__thumb" type="button" id="timeframeSliderEnd" aria-label="Adjust end of time range"><span class="timeframe-slider__thumb-label" id="sliderEndLabel" hidden></span></button>
+          </div>
+          <span class="timeframe-slider__edge" aria-hidden="true">▶</span>
+        </div>
+        <div class="timeframe-slider__labels" aria-hidden="true" id="timeframeSliderLabels"></div>
+        <div class="timeframe-field-row">
+          <div class="timeframe-field" id="startDateField" data-field="startDate" role="button" tabindex="0" aria-haspopup="dialog">
+            <span class="timeframe-field__value" id="startDateValue"></span>
+            <svg class="timeframe-field__icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="14"></rect><path d="M8 3v6"></path><path d="M16 3v6"></path><path d="M4 10h16"></path></svg>
+          </div>
+          <div class="timeframe-field"><span class="timeframe-field__value"><span id="startTimeValue"></span> <span class="timeframe-field__timezone" id="startTimeZone">CDT</span></span></div>
+          <div class="timeframe-field-separator">to</div>
+          <div class="timeframe-field" id="endDateField" data-field="endDate" role="button" tabindex="0" aria-haspopup="dialog">
+            <span class="timeframe-field__value" id="endDateValue"></span>
+            <svg class="timeframe-field__icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="6" width="16" height="14"></rect><path d="M8 3v6"></path><path d="M16 3v6"></path><path d="M4 10h16"></path></svg>
+          </div>
+          <div class="timeframe-field"><span class="timeframe-field__value"><span id="endTimeValue"></span> <span class="timeframe-field__timezone" id="endTimeZone">CDT</span></span></div>
+        </div>
+        <div class="mini-cal" id="miniCal" role="dialog" aria-label="Pick a date" hidden>
+          <div class="mini-cal__header">
+            <button class="mini-cal__nav" type="button" id="miniCalPrev" aria-label="Previous month"><svg class="mini-cal__nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button>
+            <span class="mini-cal__title" id="miniCalTitle"></span>
+            <button class="mini-cal__nav" type="button" id="miniCalNext" aria-label="Next month"><svg class="mini-cal__nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button>
+          </div>
+          <div class="mini-cal__weekdays" aria-hidden="true"><span class="mini-cal__weekday">Su</span><span class="mini-cal__weekday">Mo</span><span class="mini-cal__weekday">Tu</span><span class="mini-cal__weekday">We</span><span class="mini-cal__weekday">Th</span><span class="mini-cal__weekday">Fr</span><span class="mini-cal__weekday">Sa</span></div>
+          <div class="mini-cal__days" id="miniCalDays" role="grid" aria-label="Calendar days"></div>
+        </div>
+      </div>
+    </div>
+    <div class="timeframe-modal__footer">
+      <button class="timeframe-modal__footer-button timeframe-modal__footer-button--cancel" type="button" id="timeframeCancelBtn">Cancel</button>
+      <button class="timeframe-modal__footer-button timeframe-modal__footer-button--apply" type="button" id="timeframeApplyBtn">Apply time frame</button>
+    </div>
+  </div>
+</div>
 <div class="modal-bg" id="contribModal" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="contribTitle">
     <div class="mh"><h2 id="contribTitle">Contribute to investigation</h2><div class="sub" id="contribSub"></div></div>
@@ -916,6 +1323,46 @@ Class-map: class-default  10.3 Gbps   drops 0`,
   ], cards:[]
  }
 ];
+
+/* Table-only facts per investigation (device, symptom/observation counts, and
+   which recency bucket its activity and incident fall in — same bucket scheme
+   as the demo table). Anything not listed here is derived live from status. */
+const TABLE_META={
+  'inv-2417':{device:'edge-rtr-02', sym:6, metric:9, alarm:4, ab:'hour', ib:'hour'},
+  'inv-2419':{device:'core-sw-01', sym:4, metric:7, alarm:2, ab:'hour', ib:'hour'},
+  'inv-2421':{device:'edge-rtr-11', sym:5, metric:6, alarm:3, ab:'hour', ib:'hour'},
+  'inv-2423':{device:'bastion-02', sym:3, metric:2, alarm:5, ab:'hour', ib:'hour'},
+  'inv-2431':{device:'ns3.aus1', sym:1, metric:2, alarm:0, ab:'hour', ib:'hour'},
+  'inv-2432':{device:'leaf-sw-14', sym:1, metric:1, alarm:1, ab:'hour', ib:'day'},
+  'inv-2433':{device:'core-rtr-09', sym:2, metric:3, alarm:2, ab:'hour', ib:'day'},
+  'inv-2434':{device:'vpn-gw-05', sym:0, metric:1, alarm:0, ab:'day', ib:'day'},
+  'inv-2435':{device:'voice VLAN', sym:2, metric:4, alarm:0, ab:'hour', ib:'hour'},
+  'inv-2408':{device:'ap-18', sym:1, metric:0, alarm:1, ab:'day', ib:'day'},
+  'inv-2402':{device:'edge-rtr-02', sym:0, metric:2, alarm:0, ab:'week', ib:'week'},
+  'inv-2396':{device:'core-sw-07', sym:0, metric:3, alarm:1, ab:'week', ib:'week'},
+  'inv-2399':{device:'4 affected devices', sym:0, metric:2, alarm:1, ab:'month', ib:'month'}
+};
+/* Dismissed investigations: only ever seen through the table's Dismissed
+   context. Passive (no steps, not in the rail), each with an outcome as its stage. */
+const DISMISSED = [
+ { id:'inv-2408', passive:true, dismissed:true, stage:'False positive', title:'Spurious alarm on ap-18 — no anomaly confirmed', site:'ap-18 · sea1', opened:'3 hr ago', updated:'3 hr ago', updatedMin:190, eventRange:'2:10 AM – 4:30 AM', owner:'auto-triage',
+   summary:'A client-count alarm fired on ap-18 but every follow-up probe came back clean: association counts, retry rates, and channel utilization all sat inside their 7-day bands. The alarm threshold was mis-set after last week\'s controller upgrade.', headline:'Alarm fired on a bad threshold, nothing wrong with the AP',
+   indicators:['Association count peaked at 41 — well within the 7-day p99.','Retry rate and channel utilization flat through the alarm window.','Threshold on the controller was reset to a default during the upgrade.'],
+   facts:[{l:'Outcome',v:'False positive'},{l:'Customer impact',v:'none'}], caseLines:[{h:'Every probe came back clean',s:'Nothing to remediate; the alarm threshold was the problem.',st:'ok'}], steps:[], cards:[] },
+ { id:'inv-2402', passive:true, dismissed:true, stage:'Terminated', title:'Duplicate BGP flap alert on edge-rtr-02', site:'edge-rtr-02 · ord1', opened:'1 day ago', updated:'1 day ago', updatedMin:1500, eventRange:'11:00 AM – 3:00 PM', owner:'auto-triage',
+   summary:'A second alert stream for the same AS3356 session opened its own investigation. It was terminated once the correlation engine matched it to the active ticket.', headline:'Terminated — duplicate of an active ticket',
+   indicators:['Same peer, same interface, same time window as inv-2417.','No independent evidence beyond the shared alerts.'],
+   facts:[{l:'Outcome',v:'Terminated'},{l:'Duplicate of',v:'inv-2417'}], caseLines:[{h:'Matched to the active ticket',s:'Nothing further to do here.',st:'ok'}], steps:[], cards:[] },
+ { id:'inv-2396', passive:true, dismissed:true, stage:'Closed', title:'Link errors on core-sw-07 during maintenance', site:'core-sw-07 · dfw2', opened:'2 days ago', updated:'2 days ago', updatedMin:2900, eventRange:'8:30 AM – 12:00 PM', owner:'auto-triage',
+   summary:'CRC errors and a short link flap on core-sw-07 lined up exactly with a scheduled optic swap in the change calendar. Closed with the root cause attributed to planned maintenance.', headline:'Closed — root cause was planned maintenance',
+   indicators:['Error window matches change CHG-2291 to the minute.','Counters stayed at zero after the swap completed.'],
+   facts:[{l:'Outcome',v:'Closed'},{l:'Change',v:'CHG-2291'}], caseLines:[{h:'Errors coincide with a scheduled optic swap',s:'Expected, not a fault.',st:'ok'}], steps:[], cards:[] },
+ { id:'inv-2399', passive:true, dismissed:true, stage:'Merged', title:'Jumbo-frame drops on four aggregation devices', site:'agg fabric · 4 devices', opened:'3 days ago', updated:'3 days ago', updatedMin:4300, eventRange:'9:15 AM – 12:45 PM', owner:'auto-triage',
+   summary:'Silent discards on four downstream devices were traced to the same egress MTU mismatch already covered by the ME-EVC-NNI_21 recommendation, so this investigation was merged into it.', headline:'Merged into the MTU recommendation for the same device group',
+   indicators:['All four devices sit behind ME-EVC-NNI_21.','Discard pattern identical to the recommendation\'s evidence.'],
+   facts:[{l:'Outcome',v:'Merged'},{l:'Merged into',v:'rec-4412'}], caseLines:[{h:'Same root cause as an existing recommendation',s:'Tracked there instead.',st:'ok'}], steps:[], cards:[] }
+];
+INVESTIGATIONS.push(...DISMISSED);
 
 const RECOMMENDATIONS = [
  {
@@ -1192,6 +1639,11 @@ function renderRail(){
 function renderWorkspace(){
   $('workspace').hidden=!state.workspaceOpen;
   const isRec=state.workspaceType==='rec', isTracked=state.workspaceType==='tracked';
+  // Investigations (and Tracked) use the ported full table; recommendations keep the simple one.
+  $('invWs').hidden=isRec;
+  $('workspace').querySelector('.ws-hd').hidden=!isRec;
+  $('workspace').querySelector('.ws-body').hidden=!isRec;
+  if(!isRec){ if(state.workspaceOpen) renderInvTable(); return; }
   const useFilters=!isRec&&!isTracked;
   $('wsTitle').textContent=isRec?'Recommendations':isTracked?'Tracked investigations':'Investigations';
   $('wsCol2').textContent=isRec?'Needs':'Stage';
@@ -1591,7 +2043,7 @@ function renderChat(){
     tabBar.hidden=true;
     $('mainTitle').hidden=true;
     $('input').placeholder='Ask a question, or start something new…';
-    const trackedCount=INVESTIGATIONS.filter(i=>i.tracked&&!state.invStatus[i.id].closed).length;
+    const trackedCount=INVESTIGATIONS.filter(i=>isTrackedInv(i)&&!state.invStatus[i.id].closed).length;
     col.innerHTML=`<div class="empty"><div class="empty-hd"><h1>Hello, Hazel</h1><button class="tracked-link" id="trackedLink">${ICON.bookmark}Tracked<span class="c">${trackedCount}</span></button></div><p>Open an investigation on the left to see what it needs from you, or start with a question. Anything you open becomes a conversation you can come back to.</p>
     <div class="starts">
       <button data-start="Which sites have the least transit headroom right now?"><span class="h">Transit headroom by site</span><span class="s">Ranked list of uplinks closest to saturation</span></button>
@@ -2148,14 +2600,14 @@ document.addEventListener('click',(e)=>{
   if(b.dataset.wsfilter){ state.wsFilter=state.wsFilter===b.dataset.wsfilter?'all':b.dataset.wsfilter; return renderAll(); }
   if(b.id==='invExpand'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; return renderAll(); }
   if(b.id==='recExpand'){ state.workspaceOpen=true; state.workspaceType='rec'; state.activityOpen=false; return renderAll(); }
-  if(b.id==='trackedLink'){ state.workspaceOpen=true; state.workspaceType='tracked'; state.activityOpen=false; return renderAll(); }
+  if(b.id==='trackedLink'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; WS.view='tracked'; WS.stage=null; WS.page=1; return renderAll(); }
   if(b.id==='fabActivity'){
     if(b.dataset.mode==='inv-close') return newChat();
     state.activityOpen=!state.activityOpen; if(state.activityOpen) state.workspaceOpen=false; return renderAll();
   }
   if(b.dataset.acttab){ state.actTab=b.dataset.acttab; return renderActivity(); }
   if(b.dataset.collapse!=null) return b.closest('.rail-section').classList.toggle('collapsed');
-  if(b.id==='wsClose'){ state.workspaceOpen=false; return renderAll(); }
+  if(b.id==='wsClose'||b.id==='invWsClose'){ state.workspaceOpen=false; return renderAll(); }
   if(b.id==='fabSide'){ state.sideOpen=true; return renderSide(); }
   if(b.id==='fabChat'){
     state.sideOpen=true; state.sideTab='chat'; renderSide();
@@ -2234,6 +2686,321 @@ mainEl.addEventListener('drop',(e)=>{
   if(zone) return addCardToThread(zone.dataset.stackdrop, id);
   openCardTab(id);
 });
+
+/* =======================================================================
+   Investigations table — ported from demos/dashboard2/investigations.html.
+   Same toolbar (context · stage/outcome · search · view mode · time frame),
+   same recency buckets, sort rules, paging, empty state and tracked stars,
+   but rendered from this page's INVESTIGATIONS data and live status.
+   ======================================================================= */
+const WS={ view:'valid', stage:null, mode:'all', timeframe:'Last 24 hours', lastActivityRangeApplied:true,
+  search:'', page:1, sortDir:'desc', sortField:'activity', metric:'Last 24 hours', range:'', locked:false };
+const WS_PAGE=10;
+const WS_NOW=new Date();
+const RECENCY_RANK={hour:0, day:1, week:2, month:3};
+const PRESET_RANK={'Last hour':0,'Last 12 hours':1,'Last 24 hours':1,'Yesterday':1,'Last seven days':2,'Last 30 days':3,'All time':Infinity,custom:3};
+const STAGE_OPTIONS={ valid:['Initially analyzed','Causes identified','Remediation created','Resolved'], dismissed:['False positive','Terminated','Closed','Merged'] };
+const ALL_STAGES=STAGE_OPTIONS.valid.concat(STAGE_OPTIONS.dismissed);
+const CONTEXT_OPTIONS=['valid','dismissed','tracked'];
+const WS_PRESETS=['Last hour','Last 12 hours','Last 24 hours','Yesterday','Last seven days','Last 30 days','All time'];
+
+/* ---- tracked (shared with the rail's Tracked count; persisted like the demo) ---- */
+const TRACKED_KEY='trackedInvestigations';
+function getTrackedSet(){
+  try{ const raw=localStorage.getItem(TRACKED_KEY); if(raw!=null) return new Set(JSON.parse(raw).map(x=>x.ticket)); }catch(e){}
+  return new Set(INVESTIGATIONS.filter(i=>i.tracked).map(i=>i.id));
+}
+function setTrackedSet(set){
+  try{ localStorage.setItem(TRACKED_KEY, JSON.stringify([...set].map(ticket=>({ticket})))); }catch(e){}
+  INVESTIGATIONS.forEach(i=>{ i.tracked=set.has(i.id); });
+}
+function isTrackedInv(i){ return getTrackedSet().has(i.id); }
+setTrackedSet(getTrackedSet());
+
+/* ---- per-row facts, derived live so approvals/answers change the table ---- */
+function wsRow(i){
+  const m=TABLE_META[i.id]||{}; const st=state.invStatus[i.id]||{stepIdx:0};
+  const step=i.steps[st.stepIdx];
+  const conv=state.invConvs[i.id]; const decided=!!(conv&&conv.decisions&&conv.decisions[st.stepIdx]!=null);
+  const open=!st.closed&&!!step&&st.stepIdx===0&&!decided;
+  const stage=i.dismissed?i.stage:(st.closed||!i.steps.length&&!i.stage)?'Resolved':(i.passive?i.stage:stageFor(i).t);
+  const last=new Date(WS_NOW.getTime()-(i.updatedMin||0)*60000);
+  const opened=new Date(last.getTime()-Math.max(0, wsMinutes(i.opened)-(i.updatedMin||0))*60000);
+  return { i, id:i.id, ticket:i.id, headline:i.title, device:m.device||i.site.split(' · ')[0], view:i.dismissed?'dismissed':'valid', stage,
+    needsApproval:open&&(step.type==='tool'||step.type==='remediation'), needsInput:open&&step.type==='question',
+    ab:m.ab||'month', ib:m.ib||'month', sym:m.sym??0, metric:m.metric??0, alarm:m.alarm??0,
+    lastTime:last.getTime(), incidentTime:opened.getTime(), lastText:wsDateCell(last), rangeText:wsRangeCell(opened, i.eventRange) };
+}
+function wsMinutes(txt){ // "1 hr 10 min ago" / "3 days ago" / "14 min ago"
+  let m=0; const d=/(\d+)\s*day/.exec(txt), h=/(\d+)\s*hr/.exec(txt), mi=/(\d+)\s*min/.exec(txt);
+  if(d) m+=+d[1]*1440; if(h) m+=+h[1]*60; if(mi) m+=+mi[1]; return m;
+}
+const wsPad=n=>String(n).padStart(2,'0');
+const wsMDY=d=>`${wsPad(d.getMonth()+1)}/${wsPad(d.getDate())}/${d.getFullYear()}`;
+function wsDateCell(d){ const h=d.getHours(), ampm=h>=12?'PM':'AM'; return `${wsMDY(d)},<br>${(h%12)||12}:${wsPad(d.getMinutes())} ${ampm}`; }
+function wsRangeCell(d, range){ return `${wsMDY(d)},<br>${esc(range||'')}`; }
+
+/* ---- filtering, same predicates as the demo ---- */
+const wsRows=()=>INVESTIGATIONS.map(wsRow);
+function wsMatchesView(r, view){ if(view==='all') return true; if(view==='tracked') return isTrackedInv(r.i); return r.view===view; }
+function wsMatchesRecency(r){
+  if(WS.mode==='approval'||WS.mode==='needsInput') return true;
+  const rank=PRESET_RANK[WS.timeframe]??3;
+  if(WS.mode==='range') return RECENCY_RANK[r.ib]<=rank;
+  if(!WS.lastActivityRangeApplied) return true;
+  return RECENCY_RANK[r.ab]<=rank;
+}
+function wsMatchesSearch(r){ if(!WS.search) return true; return `${r.ticket} ${r.headline} ${r.device}`.toLowerCase().includes(WS.search); }
+function wsBaseMatches(rows){
+  return rows.filter(r=>wsMatchesView(r, WS.view)&&(!WS.stage||r.stage===WS.stage)&&(WS.mode!=='approval'||r.needsApproval)&&(WS.mode!=='needsInput'||r.needsInput)&&wsMatchesSearch(r));
+}
+function wsSorted(rows){
+  const sign=WS.sortDir==='asc'?1:-1, key=WS.sortField==='incident'?'incidentTime':'lastTime';
+  return rows.slice().sort((a,b)=>sign*(a[key]-b[key]));
+}
+
+/* ---- render ---- */
+const wsBadgeApproval='<span class="approval-badge" aria-label="Needs approval"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#f1c21b"/><rect x="4.5" y="4.5" width="2.5" height="7" rx="0.5" fill="#000"/><rect x="9" y="4.5" width="2.5" height="7" rx="0.5" fill="#000"/></svg></span>';
+const wsBadgeInput='<span class="needs-input-badge" aria-label="Needs your input"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#d02670"/><text x="8" y="12" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">?</text></svg></span>';
+const wsStar='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h10v12l-5-3-5 3z"/></svg>';
+const wsCopyIcon='<svg viewBox="0 0 32 32" fill="currentColor" stroke="none"><path d="M28,10V28H10V10H28m0-2H10a2,2,0,0,0-2,2V28a2,2,0,0,0,2,2H28a2,2,0,0,0,2-2V10a2,2,0,0,0-2-2Z"></path><path d="M4,18H2V4A2,2,0,0,1,4,2H18V4H4Z"></path></svg>';
+function wsContextIcon(v){
+  if(v==='valid') return '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8.5 6 12 13.5 4.5"/></svg>';
+  if(v==='dismissed') return '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
+  if(v==='tracked') return '<svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true"><path d="M3 2h10v12l-5-3-5 3z"/></svg>';
+  return '';
+}
+const wsContextLabel=v=>v==='valid'?'Valid':v==='dismissed'?'Dismissed':v==='tracked'?'Tracked':'All investigations';
+
+function renderInvTable(){
+  const rows=wsRows();
+  const base=wsBaseMatches(rows);
+  const matching=wsSorted(base.filter(wsMatchesRecency));
+  const tracked=getTrackedSet();
+  // toolbar state
+  $('toolbarFilterTriggerLabel').textContent=wsContextLabel(WS.view);
+  const dot=$('toolbarFilterDot'); dot.className=`toolbar-filter__status-dot toolbar-filter__status-dot--${WS.view}`; dot.innerHTML=wsContextIcon(WS.view);
+  $('contextFilterMenu').innerHTML=CONTEXT_OPTIONS.map(v=>`<button class="toolbar-filter__option ${v===WS.view?'is-active':''}" type="button" data-context-view="${v}" role="option" aria-selected="${v===WS.view}"><span class="toolbar-filter__status-dot toolbar-filter__status-dot--${v}" aria-hidden="true">${wsContextIcon(v)}</span>${wsContextLabel(v)}</button>`).join('');
+  const stages=STAGE_OPTIONS[WS.view]||ALL_STAGES;
+  $('stageFilterMenu').innerHTML=`<button class="toolbar-filter__option ${!WS.stage?'is-active':''}" type="button" data-stage-option="" role="option">All</button>`+
+    stages.map(st=>{ const n=rows.filter(r=>r.stage===st&&wsMatchesView(r,WS.view)&&wsMatchesRecency(r)).length;
+      return `<button class="toolbar-filter__option ${st===WS.stage?'is-active':''}" type="button" data-stage-option="${esc(st)}" role="option" ${n===0?'disabled':''}><span class="toolbar-filter__option-label">${esc(st)}</span><span class="toolbar-filter__option-count">${n}</span></button>`; }).join('');
+  $('stageFilterContainer').classList.toggle('has-active-filter', !!WS.stage);
+  $('stageFilterTriggerLabel').textContent=WS.stage||'All';
+  $('stageColHeader').textContent=WS.view==='dismissed'?'Outcome':WS.view==='valid'?'Stage':'Stage / outcome';
+  const approvalN=rows.filter(r=>wsMatchesView(r,WS.view)&&r.needsApproval).length, inputN=rows.filter(r=>wsMatchesView(r,WS.view)&&r.needsInput).length;
+  $('approvalFilterLabel').textContent=`Needs approval only (${approvalN})`;
+  $('needsInputFilterLabel').textContent=`Needs input only (${inputN})`;
+  document.querySelectorAll('#viewModeFilterMenu [data-view-mode]').forEach(b=>{ const on=b.dataset.viewMode===WS.mode; b.classList.toggle('is-active',on); b.setAttribute('aria-selected',String(on)); });
+  $('viewModeFilterTriggerLabel').textContent=WS.mode==='approval'?`Needs approval only (${approvalN})`:WS.mode==='needsInput'?`Needs input only (${inputN})`:WS.mode==='range'?'Event date range':'Last activity';
+  $('stageDateRange').hidden=!(WS.mode==='all'||WS.mode==='range');
+  $('dateRangeMetric').textContent=WS.metric; $('dateRangeLabel').textContent=WS.range; $('dateRangeTrigger').title=WS.range;
+  document.querySelectorAll('#dateRangeQuickMenu [data-quick-preset]').forEach(b=>b.classList.toggle('is-active', b.dataset.quickPreset===WS.timeframe));
+  // sort column highlight + arrows
+  const useIncident=WS.mode==='range';
+  $('lastActivityColHeader').classList.toggle('sort-col-th', !useIncident); $('dateRangeColHeader').classList.toggle('sort-col-th', useIncident);
+  $('updatedSortArrow').classList.toggle('is-asc', !useIncident&&WS.sortDir==='asc'); $('dateRangeSortArrow').classList.toggle('is-asc', useIncident&&WS.sortDir==='asc');
+  // rows / empty state / footer
+  const total=matching.length;
+  if(total===0){
+    const q=WS.search.trim();
+    if(base.length>0){ $('tableEmptyStateTitle').textContent=q?`No investigations match "${q}" in this time range.`:'No investigations in this time range.'; $('tableEmptyStateSub').textContent=base.length===1?'1 investigation matches outside it.':`${base.length} investigations match outside it.`; $('tableEmptyStateAction').hidden=false; }
+    else if(q){ $('tableEmptyStateTitle').textContent=`No investigations match "${q}".`; $('tableEmptyStateSub').textContent='Try a different search term or check your filters.'; $('tableEmptyStateAction').hidden=true; }
+    else { $('tableEmptyStateTitle').textContent='No investigations match the current filters.'; $('tableEmptyStateSub').textContent=''; $('tableEmptyStateAction').hidden=true; }
+    $('tableScroll').hidden=true; $('tableFooter').hidden=true; $('tableEmptyState').hidden=false; $('invTbody').innerHTML='';
+  } else {
+    $('tableScroll').hidden=false; $('tableFooter').hidden=false; $('tableEmptyState').hidden=true;
+    const pages=Math.max(1, Math.ceil(total/WS_PAGE)); WS.page=Math.min(Math.max(WS.page,1),pages);
+    const start=(WS.page-1)*WS_PAGE, end=Math.min(start+WS_PAGE,total);
+    $('invTbody').innerHTML=matching.slice(start,end).map(r=>`<tr class="row" data-wsrow="${r.id}" data-view="${r.view}" data-stage="${esc(r.stage)}" ${r.needsApproval?'data-needs-approval="true"':''} ${r.needsInput?'data-needs-input="true"':''}>
+      <td><div class="ticket-cell"><div class="ticket-pill-row"><button type="button" class="track-star ${tracked.has(r.id)?'is-tracked':''}" data-track="${r.id}" title="${tracked.has(r.id)?'Untrack':'Track'}" aria-label="${tracked.has(r.id)?'Untrack':'Track'} ${r.ticket}">${wsStar}</button><span class="ticket-pill">${esc(r.ticket)}</span></div><p class="ticket-headline">${esc(r.headline)}</p></div></td>
+      <td><div class="device-name-cell"><span>${esc(r.device)}</span><button class="copy-device-btn" type="button" data-copy="${esc(r.device)}" aria-label="Copy device name">${wsCopyIcon}</button></div></td>
+      <td>${r.rangeText}</td>
+      <td>${r.lastText}</td>
+      <td class="stage-text">${esc(r.stage)}${r.needsApproval?wsBadgeApproval:''}${r.needsInput?wsBadgeInput:''}</td>
+      <td class="count-cell">${r.sym||'—'}</td>
+      <td class="count-cell">${r.metric}</td>
+      <td class="count-cell">${r.alarm}</td>
+      <td class="count-cell">${r.metric+r.alarm}</td>
+    </tr>`).join('');
+    $('tableResultsSummary').textContent=`${start+1}–${end} of ${total} items`;
+    $('tablePageSummary').textContent=`of ${pages} pages`; $('tableCurrentPage').textContent=String(WS.page);
+    $('tablePrevPage').disabled=WS.page<=1; $('tableNextPage').disabled=WS.page>=pages;
+  }
+  if(!WS.locked&&$('workspace').offsetWidth){ WS.locked=true; wsLockWidth($('contextFilterTrigger'),$('toolbarFilterTriggerLabel'),CONTEXT_OPTIONS.map(wsContextLabel)); wsLockWidth($('stageFilterTrigger'),$('stageFilterTriggerLabel'),['All',...ALL_STAGES]); wsLockWidth($('viewModeFilterTrigger'),$('viewModeFilterTriggerLabel'),['Last activity','Event date range','Needs approval only (99)','Needs input only (99)']); }
+}
+function wsLockWidth(trigger,labelEl,texts){
+  const chrome=trigger.getBoundingClientRect().width-labelEl.getBoundingClientRect().width;
+  const probe=labelEl.cloneNode(false); probe.style.cssText='position:absolute;visibility:hidden;white-space:nowrap;left:-9999px'; document.body.appendChild(probe);
+  let w=0; texts.forEach(t=>{ probe.textContent=t; w=Math.max(w, probe.getBoundingClientRect().width); }); document.body.removeChild(probe);
+  trigger.style.minWidth=`${Math.ceil(w+chrome)}px`;
+}
+
+/* ---- dropdowns: fixed-position menus that escape the shell's overflow ---- */
+function wsWireDropdown(container, trigger, menu){
+  const close=()=>{ container.classList.remove('is-open'); trigger.setAttribute('aria-expanded','false'); };
+  trigger.addEventListener('click',()=>{
+    const willOpen=!container.classList.contains('is-open');
+    if(willOpen){ const r=trigger.getBoundingClientRect(); menu.style.top=`${r.bottom+4}px`; menu.style.left=`${r.left}px`; menu.style.right='auto'; }
+    const open=container.classList.toggle('is-open'); trigger.setAttribute('aria-expanded',String(open));
+  });
+  document.addEventListener('click',e=>{ if(!container.contains(e.target)) close(); });
+  return close;
+}
+const wsCloseContext=wsWireDropdown($('contextFilterContainer'),$('contextFilterTrigger'),$('contextFilterMenu'));
+const wsCloseStage=wsWireDropdown($('stageFilterContainer'),$('stageFilterTrigger'),$('stageFilterMenu'));
+const wsCloseMode=wsWireDropdown($('viewModeFilterContainer'),$('viewModeFilterTrigger'),$('viewModeFilterMenu'));
+const wsCloseQuick=wsWireDropdown($('dateRangeQuickpick'),$('dateRangeTrigger'),$('dateRangeQuickMenu'));
+
+function wsSelectMode(mode){
+  WS.mode=mode;
+  WS.sortDir=mode==='approval'?'asc':'desc'; WS.sortField=mode==='range'?'incident':'activity';
+  WS.page=1; renderInvTable();
+}
+function wsApplyView(v){ WS.view=v; WS.stage=null; WS.page=1; renderInvTable(); }
+
+/* toolbar + table clicks (delegated: the menus and rows are re-rendered) */
+$('invWs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.contextView){ if(WS.view!==b.dataset.contextView) wsApplyView(b.dataset.contextView); wsCloseContext(); $('contextFilterTrigger').focus(); return; }
+  if(b.dataset.stageOption!=null){ WS.stage=b.dataset.stageOption||null; WS.page=1; renderInvTable(); wsCloseStage(); $('stageFilterTrigger').focus(); return; }
+  if(b.dataset.viewMode){ wsSelectMode(b.dataset.viewMode); wsCloseMode(); $('viewModeFilterTrigger').focus(); return; }
+  if(b.dataset.quickPreset){ wsApplyTimeframe(b.dataset.quickPreset); wsCloseQuick(); return; }
+  if(b.id==='dateRangeCustomOption'){ wsCloseQuick(); wsOpenModal(); return; }
+  if(b.id==='tablePrevPage'){ if(WS.page>1){ WS.page--; renderInvTable(); } return; }
+  if(b.id==='tableNextPage'){ WS.page++; renderInvTable(); return; }
+  if(b.id==='tableEmptyStateAction'){ wsApplyTimeframe('All time'); return; }
+  if(b.dataset.track){ e.stopPropagation(); const set=getTrackedSet(); set.has(b.dataset.track)?set.delete(b.dataset.track):set.add(b.dataset.track); setTrackedSet(set); renderInvTable(); return; }
+  if(b.dataset.copy){ e.stopPropagation(); const dev=b.dataset.copy; (navigator.clipboard?navigator.clipboard.writeText(dev):Promise.reject()).then(()=>{ b.style.color='var(--sup-success)'; setTimeout(()=>{ b.style.color=''; },500); }).catch(()=>toast('Copy not available')); return; }
+});
+$('investigationSearchInput').addEventListener('input',e=>{ WS.search=e.target.value.trim().toLowerCase(); WS.page=1; renderInvTable(); });
+
+/* ---- time frame: presets relative to now, custom range via the modal ---- */
+function wsPresetRange(key){
+  const now=new Date(WS_NOW), d=(n)=>new Date(now.getTime()-n*3600000);
+  const y0=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1,0,0), y1=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1,23,59);
+  switch(key){
+    case 'Last hour': return {start:d(1), end:now};
+    case 'Last 12 hours': return {start:d(12), end:now};
+    case 'Last 24 hours': return {start:d(24), end:now};
+    case 'Yesterday': return {start:y0, end:y1};
+    case 'Last seven days': return {start:d(24*7), end:now};
+    case 'Last 30 days': return {start:d(24*30), end:now};
+    default: return {start:new Date(now.getFullYear()-1,0,1), end:now};
+  }
+}
+const MONTH_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function wsRangeLabel(a,b){ return a.getFullYear()===b.getFullYear()?`${MONTH_SHORT[a.getMonth()]} ${a.getDate()} - ${MONTH_SHORT[b.getMonth()]} ${b.getDate()}`:`${MONTH_SHORT[a.getMonth()]} ${a.getDate()}, ${a.getFullYear()} - ${MONTH_SHORT[b.getMonth()]} ${b.getDate()}, ${b.getFullYear()}`; }
+function wsApplyTimeframe(key, metric, range){
+  WS.timeframe=key; WS.lastActivityRangeApplied=true;
+  const r=wsPresetRange(key);
+  WS.metric=metric||key; WS.range=range||(key==='All time'?'Every investigation':wsRangeLabel(r.start,r.end));
+  WS.stage=WS.stage; WS.page=1;
+  wsSyncOuterToPreset(key);
+  renderInvTable();
+}
+
+/* modal state */
+let tfOuterStart, tfOuterEnd, tfStartFrac=0, tfEndFrac=1, tfActiveField=null, tfCalMonth, tfTz='local', tfSelected=null;
+const tfEl=id=>$(id);
+function wsSyncOuterToPreset(key){ const r=wsPresetRange(key); tfOuterStart=new Date(r.start); tfOuterEnd=new Date(r.end); tfStartFrac=0; tfEndFrac=1; tfRenderInputs(); tfRenderSlider(); }
+const tfActiveStart=()=>new Date(tfOuterStart.getTime()+(tfOuterEnd-tfOuterStart)*tfStartFrac);
+const tfActiveEnd=()=>new Date(tfOuterStart.getTime()+(tfOuterEnd-tfOuterStart)*tfEndFrac);
+function tfFmtTime(d){ if(tfTz==='utc') return `${wsPad(d.getUTCHours())}:${wsPad(d.getUTCMinutes())}`; return `${wsPad(d.getHours())}:${wsPad(d.getMinutes())}`; }
+function tfFmtDate(d){ if(tfTz==='utc') return `${wsPad(d.getUTCMonth()+1)}/${wsPad(d.getUTCDate())}/${d.getUTCFullYear()}`; return wsMDY(d); }
+function tfLocalAbbr(){ try{ const p=new Intl.DateTimeFormat('en-US',{timeZoneName:'short'}).formatToParts(new Date()).find(x=>x.type==='timeZoneName'); return p?p.value:'Local'; }catch(e){ return 'Local'; } }
+function tfTzAbbr(){ if(tfTz==='utc') return 'UTC'; try{ const p=new Intl.DateTimeFormat('en-US',{timeZoneName:'short'}).formatToParts(new Date()).find(x=>x.type==='timeZoneName'); return p?p.value:'Local'; }catch(e){ return 'Local'; } }
+function tfRenderInputs(){
+  const a=tfActiveStart(), b=tfActiveEnd();
+  tfEl('startDateValue').textContent=tfFmtDate(a); tfEl('endDateValue').textContent=tfFmtDate(b);
+  tfEl('startTimeValue').textContent=tfFmtTime(a); tfEl('endTimeValue').textContent=tfFmtTime(b);
+  tfEl('startTimeZone').textContent=tfTzAbbr(); tfEl('endTimeZone').textContent=tfTzAbbr(); tfEl('localTimezoneAbbr').textContent=tfLocalAbbr();
+  tfEl('timezoneLocal').setAttribute('aria-checked', String(tfTz==='local')); tfEl('timezoneUTC').setAttribute('aria-checked', String(tfTz==='utc'));
+}
+function tfTick(d,totalDays){ if(totalDays>=730) return String(d.getFullYear()); if(totalDays>=90) return `${MONTH_SHORT[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`; if(totalDays>=2) return `${MONTH_SHORT[d.getMonth()]} ${d.getDate()}`; return `${wsPad(d.getHours())}:${wsPad(d.getMinutes())}`; }
+function tfRenderSlider(){
+  tfEl('timeframeSliderStart').style.left=`${tfStartFrac*100}%`; tfEl('timeframeSliderEnd').style.left=`${tfEndFrac*100}%`;
+  tfEl('timeframeSliderSelection').style.left=`${tfStartFrac*100}%`; tfEl('timeframeSliderSelection').style.right=`${(1-tfEndFrac)*100}%`;
+  const show=tfStartFrac>0||tfEndFrac<1; const lbl=d=>`${MONTH_SHORT[d.getMonth()]} ${d.getDate()}, ${wsPad(d.getHours())}:${wsPad(d.getMinutes())}`;
+  tfEl('sliderStartLabel').textContent=lbl(tfActiveStart()); tfEl('sliderStartLabel').hidden=!show;
+  tfEl('sliderEndLabel').textContent=lbl(tfActiveEnd()); tfEl('sliderEndLabel').hidden=!show;
+  const span=tfOuterEnd-tfOuterStart, days=span/86400000, N=9, labels=[];
+  for(let k=0;k<N;k++) labels.push(tfTick(new Date(tfOuterStart.getTime()+span*k/(N-1)), days));
+  const L=tfEl('timeframeSliderLabels'); L.style.gridTemplateColumns=`repeat(${N}, minmax(0,1fr))`; L.innerHTML=labels.map(t=>`<span class="timeframe-slider__label">${esc(t)}</span>`).join('');
+}
+function tfRenderPresets(){
+  tfEl('timeframePresetGrid').innerHTML=WS_PRESETS.map(k=>`<button class="timeframe-preset ${k==='All time'?'timeframe-preset--all-time':''} ${tfSelected===k?'is-selected':''}" type="button" data-preset="${k}"><span class="timeframe-preset__label">${k}</span><svg class="timeframe-preset__check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L19 7"></path></svg></button>`).join('');
+}
+function wsOpenModal(){ tfSelected=WS_PRESETS.includes(WS.timeframe)?WS.timeframe:null; wsSyncOuterToPreset(tfSelected||'Last 24 hours'); tfRenderPresets(); $('timeframeModal').hidden=false; }
+function wsCloseModal(){ $('timeframeModal').hidden=true; tfCloseCal(); }
+function tfRenderCalendar(){
+  const y=tfCalMonth.getFullYear(), m=tfCalMonth.getMonth(); tfEl('miniCalTitle').textContent=`${MONTH_NAMES[m]} ${y}`;
+  const offset=new Date(y,m,1).getDay(), last=new Date(y,m+1,0).getDate(), prevLast=new Date(y,m,0).getDate(); let h='';
+  const same=(a,b)=>a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+  for(let k=offset-1;k>=0;k--) h+=`<span class="mini-cal__day mini-cal__day--muted">${prevLast-k}</span>`;
+  for(let d=1; d<=last; d++){ const cd=new Date(y,m,d); const cls=same(cd,tfOuterStart)||same(cd,tfOuterEnd)?' mini-cal__day--selected':(cd>tfOuterStart&&cd<tfOuterEnd?' mini-cal__day--in-range':''); h+=`<button type="button" class="mini-cal__day${cls}" data-pick="${y}-${m}-${d}">${d}</button>`; }
+  const trailing=(7-((offset+last)%7))%7; for(let k=1;k<=trailing;k++) h+=`<span class="mini-cal__day mini-cal__day--muted">${k}</span>`;
+  tfEl('miniCalDays').innerHTML=h;
+}
+function tfOpenCal(fieldEl, name){
+  tfActiveField=name; const wrap=fieldEl.closest('.timeframe-custom'), wr=wrap.getBoundingClientRect(), fr=fieldEl.getBoundingClientRect();
+  const cal=tfEl('miniCal'); cal.style.left=`${fr.left-wr.left}px`; cal.style.top='auto'; cal.style.bottom=`${wr.bottom-fr.top+4}px`;
+  const seed=name==='startDate'?tfOuterStart:tfOuterEnd; tfCalMonth=new Date(seed.getFullYear(),seed.getMonth(),1); tfRenderCalendar(); cal.hidden=false;
+  document.querySelectorAll('.timeframe-field--active').forEach(el=>el.classList.remove('timeframe-field--active')); fieldEl.classList.add('timeframe-field--active');
+}
+function tfCloseCal(){ tfEl('miniCal').hidden=true; tfActiveField=null; document.querySelectorAll('.timeframe-field--active').forEach(el=>el.classList.remove('timeframe-field--active')); }
+function tfPickDay(date){
+  const a=tfActiveStart(), b=tfActiveEnd();
+  if(tfActiveField==='startDate'){ const ns=new Date(date); ns.setHours(a.getHours(),a.getMinutes(),0,0); tfOuterStart=ns; if(tfOuterStart>=tfOuterEnd) tfOuterEnd=new Date(tfOuterStart.getTime()+86400000); }
+  else { const ne=new Date(date); ne.setHours(b.getHours(),b.getMinutes(),0,0); tfOuterEnd=ne; if(tfOuterEnd<=tfOuterStart) tfOuterStart=new Date(tfOuterEnd.getTime()-86400000); }
+  tfSelected=null; tfRenderPresets(); tfStartFrac=0; tfEndFrac=1; tfRenderInputs(); tfRenderSlider(); tfRenderCalendar(); tfCloseCal();
+}
+function tfStartDrag(isStart){ return e=>{
+  e.preventDefault(); const tr=tfEl('timeframeSliderTrack').getBoundingClientRect();
+  const move=ev=>{ const x=ev.touches?ev.touches[0].clientX:ev.clientX; let f=Math.max(0,Math.min(1,(x-tr.left)/tr.width));
+    if(isStart) tfStartFrac=Math.min(f, tfEndFrac-0.005); else tfEndFrac=Math.max(f, tfStartFrac+0.005);
+    tfRenderSlider(); tfRenderInputs(); const sel=document.querySelector('.timeframe-preset.is-selected'); if(sel) sel.classList.add('is-dirty'); };
+  const up=()=>{ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); document.removeEventListener('touchmove',move); document.removeEventListener('touchend',up); };
+  document.addEventListener('mousemove',move); document.addEventListener('mouseup',up); document.addEventListener('touchmove',move,{passive:false}); document.addEventListener('touchend',up);
+}; }
+function wsDurationMetric(a,b){
+  const ms=b-a, days=Math.floor(ms/86400000), hrs=Math.floor((ms%86400000)/3600000), mins=Math.floor((ms%3600000)/60000);
+  return days>0?`${days}d ${wsPad(hrs)}h`:hrs>0?`${hrs}h ${wsPad(mins)}m`:`${mins}m`;
+}
+function wsApplyCustomRange(){
+  const a=tfActiveStart(), b=tfActiveEnd();
+  WS.timeframe='custom'; WS.lastActivityRangeApplied=true; WS.metric=wsDurationMetric(a,b); WS.range=wsRangeLabel(a,b); WS.page=1; renderInvTable();
+}
+$('timeframeModal').addEventListener('click',e=>{
+  if(e.target===$('timeframeModal')) return wsCloseModal();
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.preset){ tfSelected=b.dataset.preset; tfRenderPresets(); wsSyncOuterToPreset(tfSelected); return; }
+  if(b.id==='timeframeCancelBtn') return wsCloseModal();
+  if(b.id==='timeframeApplyBtn'){
+    const sel=document.querySelector('.timeframe-preset.is-selected');
+    // Same as the demo: a preset stays a preset even after nudging the
+    // slider; only its label switches to the dragged duration. No preset
+    // selected at all (a calendar pick) is a true custom range.
+    if(sel&&!sel.classList.contains('is-dirty')) wsApplyTimeframe(sel.dataset.preset);
+    else if(sel) wsApplyTimeframe(sel.dataset.preset, wsDurationMetric(tfActiveStart(),tfActiveEnd()), wsRangeLabel(tfActiveStart(),tfActiveEnd()));
+    else wsApplyCustomRange();
+    return wsCloseModal();
+  }
+  if(b.dataset.timezone){ tfTz=b.dataset.timezone; tfRenderInputs(); return; }
+  if(b.id==='miniCalPrev'){ tfCalMonth=new Date(tfCalMonth.getFullYear(),tfCalMonth.getMonth()-1,1); return tfRenderCalendar(); }
+  if(b.id==='miniCalNext'){ tfCalMonth=new Date(tfCalMonth.getFullYear(),tfCalMonth.getMonth()+1,1); return tfRenderCalendar(); }
+  if(b.dataset.pick){ e.stopPropagation(); const [y,m,d]=b.dataset.pick.split('-').map(Number); return tfPickDay(new Date(y,m,d)); }
+});
+['startDateField','endDateField'].forEach(id=>{
+  const el=$(id); const open=ev=>{ ev.stopPropagation(); tfOpenCal(el, el.dataset.field); };
+  el.addEventListener('click',open); el.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); open(ev); } });
+});
+document.addEventListener('click',e=>{ const cal=$('miniCal'); if(cal.hidden) return; if(!cal.contains(e.target)&&!$('startDateField').contains(e.target)&&!$('endDateField').contains(e.target)) tfCloseCal(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('timeframeModal').hidden) wsCloseModal(); });
+$('timeframeSliderStart').addEventListener('mousedown', tfStartDrag(true)); $('timeframeSliderStart').addEventListener('touchstart', tfStartDrag(true), {passive:false});
+$('timeframeSliderEnd').addEventListener('mousedown', tfStartDrag(false)); $('timeframeSliderEnd').addEventListener('touchstart', tfStartDrag(false), {passive:false});
+wsApplyTimeframe('Last 24 hours');
 
 /* charts in the main pane are drawn to the container width, so redraw on resize */
 let resizeT=null;
