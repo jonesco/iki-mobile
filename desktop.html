@@ -2872,7 +2872,7 @@ document.addEventListener('click',(e)=>{
   if(b.dataset.start){ return send(b.dataset.start); }
   if(b.dataset.filter){ state.invFilter=state.invFilter===b.dataset.filter?'all':b.dataset.filter; return renderAll(); }
   if(b.dataset.wsfilter){ state.wsFilter=state.wsFilter===b.dataset.wsfilter?'all':b.dataset.wsfilter; return renderAll(); }
-  if(b.id==='invExpand'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; return renderAll(); }
+  if(b.id==='invExpand'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; WS.view='valid'; WS.stage=null; WS.page=1; return renderAll(); }
   if(b.id==='recExpand'){ state.workspaceOpen=true; state.workspaceType='rec'; state.activityOpen=false; return renderAll(); }
   if(b.id==='trackedLink'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; WS.view='tracked'; WS.stage=null; WS.page=1; return renderAll(); }
   if(b.id==='fabActivity'){
@@ -3282,7 +3282,7 @@ let resizeT=null;
 window.addEventListener('resize',()=>{ clearTimeout(resizeT); resizeT=setTimeout(()=>{ const c=state.activeConv; if(c&&(c.invId||c.sideOf)) renderChat(); },120); });
 
 /* resizable rail / sidebar */
-function makeResizable(handleId, cssVar, min, max, invert){
+function makeResizable(handleId, cssVar, min, max, invert, onCollapse){
   const handle=$(handleId);
   handle.addEventListener('mousedown',(e)=>{
     e.preventDefault();
@@ -3292,6 +3292,9 @@ function makeResizable(handleId, cssVar, min, max, invert){
     function onMove(ev){
       const dx=ev.clientX-startX;
       let val=startVal+(invert?-dx:dx);
+      // Dragged well past the minimum: treat it as "close" — collapse the pane
+      // and put its width back so reopening restores the previous size.
+      if(onCollapse&&val<min-80){ onUp(); $('app').style.setProperty(cssVar, startVal+'px'); onCollapse(); return; }
       val=Math.max(min,Math.min(max,val));
       $('app').style.setProperty(cssVar, val+'px');
     }
@@ -3303,7 +3306,7 @@ function makeResizable(handleId, cssVar, min, max, invert){
     document.addEventListener('mouseup',onUp);
   });
 }
-makeResizable('railResize','--rail-w',220,440,false);
+makeResizable('railResize','--rail-w',220,440,false,()=>{ state.railOpen=false; $('app').classList.add('rail-collapsed'); $('fabRail').classList.add('show'); });
 makeResizable('sideResize','--side-w',280,560,true);
 
 /* boot: start on a blank new chat */
