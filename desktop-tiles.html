@@ -337,6 +337,8 @@
   .fab span{display:inline-block;max-width:200px;margin-left:8px;overflow:hidden;white-space:nowrap;opacity:1;transition:max-width .28s cubic-bezier(.2,0,.38,.9),margin-left .28s cubic-bezier(.2,0,.38,.9),opacity .16s ease}
   .fab-left{left:24px;right:auto;padding:0 12px 0 16px;transform-origin:top left}
   .fab-row{position:absolute;top:64px;right:72px;display:flex;align-items:center;gap:8px;z-index:6;pointer-events:none}
+  /* with the details sidebar open, the right-hand fabs sit behind it */
+  .app.side-open .fab-row,.app.side-open #fabActivity{z-index:3}
   .fab-row .fab{position:static;top:auto;right:auto}
   .fab-icon{padding:0;justify-content:center}
   .fab-icon span{max-width:0;margin-left:0;margin-right:0;opacity:0}
