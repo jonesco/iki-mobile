@@ -1688,9 +1688,7 @@ function renderRail(){
     {key:'rem', cls:'rem', label:'Remediation approval', icon:ICON.pause},
     {key:'input', cls:'input', label:'Needs input', icon:ICON.ask}
   ];
-  // The rail is only what needs a person. Everything else lives in the
-  // table, reachable from the header icon or the link under the tiles.
-  const tileKey=(i,need)=>(need.cls==='tool'||need.cls==='rem'||need.cls==='input')?need.cls:null;
+  const tileKey=(i,need)=>attentionKey(need);
   const all=INVESTIGATIONS.map(i=>({i,need:needFor(i)})).sort((a,b)=>(a.i.updatedMin||0)-(b.i.updatedMin||0));
   const activeId=state.activeConv&&state.activeConv.invId;
   const needsYou=all.filter(r=>tileKey(r.i,r.need)).length;
@@ -1699,7 +1697,9 @@ function renderRail(){
   $('invList').innerHTML=`<div class="tiles">`+(needsYou?'':`<div class="rail-empty" style="padding:4px 4px 8px;text-align:left">Nothing needs you right now.</div>`)+TILES.map(t=>{
     const items=all.filter(r=>tileKey(r.i,r.need)===t.key); if(!items.length) return '';
     const hasActive=items.some(r=>r.i.id===activeId);
-    const open=hasActive||!!state.tilesOpen[t.key];
+    // Opening an investigation expands its tile once (see openInvestigation);
+    // after that the tile collapses and expands freely like any other.
+    const open=state.tilesOpen[t.key]!==undefined?!!state.tilesOpen[t.key]:hasActive;
     const showNeed=false;
     return `<div class="tile ${open?'open':''} ${hasActive?'has-active':''}" data-tilekey="${t.key}">
       <button class="tile-hd" data-tile="${t.key}" aria-expanded="${open}"><span class="need-badge ${t.cls}">${t.icon}</span><span class="tile-t">${t.label}</span><span class="tile-n">${items.length}</span><svg class="icon chev" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button>
@@ -2466,9 +2466,13 @@ function submitContribute(){
 /* =======================================================================
    Conversations & flow
    ======================================================================= */
+/* The rail is only what needs a person: tool approval, remediation approval,
+   needs input. Everything else lives in the table. */
+function attentionKey(need){ return (need.cls==='tool'||need.cls==='rem'||need.cls==='input')?need.cls:null; }
 function openInvestigation(id){
   state.workspaceOpen=false;
   state.activityOpen=false;
+  { const k=attentionKey(needFor(inv(id))); if(k) state.tilesOpen[k]=true; }
   // If the details sidebar is already out on an investigation, it stays out on
   // the same tab and simply changes context to the new one.
   const keepSide=!!(state.sideOpen&&state.activeConv&&state.activeConv.invId);
@@ -2671,7 +2675,7 @@ function autosize(){ const ta=$('input'); ta.style.height='auto'; ta.style.heigh
 document.addEventListener('click',(e)=>{
   const b=e.target.closest('button'); if(!b) return;
   if(b.dataset.inv) return openInvestigation(b.dataset.inv);
-  if(b.dataset.tile){ const k=b.dataset.tile, active=state.activeConv&&state.activeConv.invId, tile=b.closest('.tile'); const forced=tile&&tile.classList.contains('has-active'); if(forced) return; state.tilesOpen[k]=!state.tilesOpen[k]; return renderRail(); }
+  if(b.dataset.tile){ const tile=b.closest('.tile'); state.tilesOpen[b.dataset.tile]=!(tile&&tile.classList.contains('open')); return renderRail(); }
   if(b.dataset.conv) return openConv(b.dataset.conv);
   if(b.id==='newChat') return newChat();
   if(b.dataset.railnav==='home'){ newChat({noFocus:true}); return b.blur(); }
