@@ -329,6 +329,40 @@
   .workspace[hidden]{display:none}
   .ws-hd{display:flex;align-items:center;gap:16px;padding:16px 24px;border-bottom:1px solid var(--border-subtle)}
   .ws-hd[hidden],.ws-body[hidden]{display:none}
+  /* Recommendations as cards (pattern from demos/dashboard2/close-the-loop.html, this page's styling) */
+  .rec-loop{max-width:1600px;margin:0 auto;padding-top:16px}
+  .loop-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .loop-filter-select{appearance:none;-webkit-appearance:none;height:32px;padding:0 30px 0 10px;background:var(--layer-01) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="%23c6c6c6" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>') no-repeat right 10px center;background-size:14px 14px;border:1px solid var(--border-subtle);color:var(--text-primary);font:13px var(--sans);cursor:pointer}
+  .loop-filter-select:focus{outline:2px solid var(--focus);outline-offset:-2px}
+  .loop-filter-select option:disabled{color:var(--text-placeholder)}
+  .loop-search{flex:1 1 auto;min-width:12rem;display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;background:var(--layer-01);border:1px solid var(--border-subtle)}
+  .loop-search:focus-within{outline:2px solid var(--focus);outline-offset:-2px}
+  .loop-search .icon{width:14px;height:14px;color:var(--text-helper);fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+  .loop-search input{flex:1;min-width:0;background:none;border:0;color:var(--text-primary);font:13px var(--sans);outline:none}
+  .loop-search input::placeholder{color:var(--text-placeholder)}
+  .loop-result-count{margin:0 0 12px;font-size:12px;color:var(--text-helper)}
+  .rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(19rem,1fr));gap:12px}
+  .rec-tile{display:flex;flex-direction:column;gap:10px;padding:16px;background:var(--layer-01);border:1px solid var(--border-subtle);text-align:left;color:inherit;font:inherit;cursor:pointer}
+  .rec-tile:hover{border-color:var(--border-strong);background:var(--layer-hover)}
+  .rec-tile:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .rec-tile.active{box-shadow:inset 3px 0 0 var(--interactive)}
+  .rec-tile-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .rec-type-badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:10px;background:rgba(138,63,252,.18);color:#be95ff;font-size:11px;font-weight:600;letter-spacing:.32px;text-transform:uppercase;white-space:nowrap}
+  .rec-status-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);white-space:nowrap}
+  .rec-status-pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--sup-warning)}
+  .rec-status-pill[data-status="applied"]{color:var(--sup-success)} .rec-status-pill[data-status="applied"]::before{background:var(--sup-success)}
+  .rec-status-pill[data-status="declined"]{color:var(--text-helper)} .rec-status-pill[data-status="declined"]::before{background:var(--text-helper)}
+  .rec-tile-title{margin:0;font-size:14px;line-height:18px;font-weight:600;color:var(--text-primary);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .rec-tile-sub{margin:0;font-size:12px;color:var(--text-secondary)}
+  .rec-tile-impact{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sup-success)}
+  .rec-tile-impact .icon{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+  .rec-tile-impact.is-foregone{color:var(--text-helper)}
+  .rec-tile-meta{display:flex;align-items:center;gap:14px;margin-top:auto;padding-top:10px;border-top:1px solid var(--border-subtle)}
+  .rec-tile-metric{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-secondary)}
+  .rec-tile-metric .icon{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;color:var(--text-helper)}
+  .rec-tile-metric strong{color:var(--text-primary);font-weight:500;font-family:var(--mono)}
+  .rec-tile-date{margin-left:auto;font-size:11px;color:var(--text-helper);white-space:nowrap}
+  .loop-empty{grid-column:1/-1;padding:40px 24px;text-align:center;color:var(--text-helper);font-size:14px;border:1px dashed var(--border-subtle)}
   .ws-hd h1{font-size:20px;font-weight:400;margin:0;flex:none}
   .ws-body{flex:1;overflow:auto;padding:0 24px 24px}
   .ws-table{width:100%;border-collapse:collapse;font-size:14px}
@@ -869,10 +903,24 @@
         <button class="circle-x" id="wsClose" aria-label="Close table view"><svg class="icon" viewBox="0 0 16 16"><path d="M12 4.7l-.7-.7L8 7.3 4.7 4l-.7.7L7.3 8 4 11.3l.7.7L8 8.7l3.3 3.3.7-.7L8.7 8z"/></svg></button>
       </div>
       <div class="ws-body">
-        <table class="ws-table">
-          <thead><tr><th>Ticket</th><th>Device(s)</th><th>Event date range</th><th class="sorted">Last Activity <svg class="icon" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></th><th id="wsCol2">Stage</th></tr></thead>
-          <tbody id="wsTbody"></tbody>
-        </table>
+        <div class="rec-loop">
+          <div class="loop-toolbar">
+            <select class="loop-filter-select" id="recStatusFilter" aria-label="Filter by status"></select>
+            <select class="loop-filter-select" id="recTypeFilter" aria-label="Filter by type"></select>
+            <select class="loop-filter-select" id="recBlastFilter" aria-label="Filter by blast radius">
+              <option value="">Any blast radius</option>
+              <option value="1-5">1–5 devices</option>
+              <option value="6-15">6–15 devices</option>
+              <option value="16-9999">16+ devices</option>
+            </select>
+            <label class="loop-search" aria-label="Search recommendations">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="4.5"></circle><path d="M13.5 13.5 19 19"></path></svg>
+              <input type="search" id="recSearchInput" placeholder="Search recommendations">
+            </label>
+          </div>
+          <p class="loop-result-count" id="recResultCount"></p>
+          <div class="rec-grid" id="recGrid"></div>
+        </div>
       </div>
 
       <!-- Investigations: the full table from demos/dashboard2/investigations.html -->
@@ -1365,6 +1413,13 @@ const DISMISSED = [
 ];
 INVESTIGATIONS.push(...DISMISSED);
 
+/* Card facts per recommendation: type, blast radius, source investigations, estimated impact. */
+const REC_META={
+  'rec-4410':{type:'Policy change', devices:1, sources:['inv-2421'], impact:{alertsPerMonth:2, estSavings:360}},
+  'rec-4411':{type:'Config standard', devices:6, sources:['inv-2417'], impact:{alertsPerMonth:1, estSavings:600}},
+  'rec-4412':{type:'Threshold tuning', devices:7, sources:['inv-2399'], impact:{alertsPerMonth:3, estSavings:900}}
+};
+const REC_STATUS_LABEL={pending:'Pending review', applied:'Applied', declined:'Declined'};
 const RECOMMENDATIONS = [
  {
   id:'rec-4410', isRec:true, title:'Codify AS-path prepend toward AS174 as standing policy', site:'edge-rtr-11 · lax1', opened:'12 min ago', updated:'12 min ago', updatedMin:12, eventRange:'10:50 AM – 1:50 PM', owner:'auto-triage',
@@ -1446,7 +1501,7 @@ const SEED_CONVS = [
 /* =======================================================================
    State
    ======================================================================= */
-const state = { actPeriod:'24h', convs: SEED_CONVS.map(c=>({...c, stepIdx:0, decisions:{}})), invConvs:{}, sideChats:{}, cardTabs:{}, activeConv:null, sideOpen:false, sideTab:'signals', invStatus:{}, invFilter:'all', wsFilter:'all', workspaceOpen:false, workspaceType:'inv', activityOpen:false, actTab:'valid', scrollToBottom:false, railOpen:true };
+const state = { rec:{status:'',type:'',blast:'',q:''}, actPeriod:'24h', convs: SEED_CONVS.map(c=>({...c, stepIdx:0, decisions:{}})), invConvs:{}, sideChats:{}, cardTabs:{}, activeConv:null, sideOpen:false, sideTab:'signals', invStatus:{}, invFilter:'all', wsFilter:'all', workspaceOpen:false, workspaceType:'inv', activityOpen:false, actTab:'valid', scrollToBottom:false, railOpen:true };
 [...INVESTIGATIONS, ...RECOMMENDATIONS].forEach(inv=>state.invStatus[inv.id]={stepIdx:0, closed:false});
 
 const $=(id)=>document.getElementById(id);
@@ -1789,21 +1844,49 @@ function renderWorkspace(){
   $('workspace').querySelector('.ws-hd').hidden=!isRec;
   $('workspace').querySelector('.ws-body').hidden=!isRec;
   if(!isRec){ if(state.workspaceOpen) renderInvTable(); return; }
-  const useFilters=!isRec&&!isTracked;
-  $('wsTitle').textContent=isRec?'Recommendations':isTracked?'Tracked investigations':'Investigations';
-  $('wsCol2').textContent=isRec?'Needs':'Stage';
-  $('wsFilters').hidden=!useFilters;
-  $('wsPeriod').hidden=isRec||isTracked;
-  const list=isRec?RECOMMENDATIONS:isTracked?INVESTIGATIONS.filter(i=>i.tracked):INVESTIGATIONS;
-  if(useFilters) $('wsFilters').innerHTML=filterSegHTML(true,'wsFilter');
-  const rows=list.map(i=>({i,need:needFor(i),display:isRec?needFor(i):stageFor(i)})).filter(r=>!useFilters||state.wsFilter==='all'||r.need.cls===state.wsFilter).sort((a,b)=>(a.i.updatedMin||0)-(b.i.updatedMin||0));
-  $('wsTbody').innerHTML=rows.length?rows.map(({i,display})=>`<tr class="row" data-wsrow="${i.id}">
-      <td><span class="tag tag-gray ws-id">${esc(i.id)}</span><br>${esc(i.title)}</td>
-      <td>${esc(i.site)}</td>
-      <td>${esc(i.eventRange)}</td>
-      <td>${esc(i.updated)}</td>
-      <td><span class="need stacked ${display.cls}">${esc(display.t)}${needBadge(display)}</span></td>
-    </tr>`).join(''):`<tr><td colspan="5" class="rail-empty">${!useFilters?'Nothing here yet.':`Nothing needs ${esc((FILTERS.find(f=>f.k===state.wsFilter)||{}).l||'').toLowerCase()} right now.`}</td></tr>`;
+  $('wsTitle').textContent='Recommendations';
+  $('wsFilters').hidden=true; $('wsPeriod').hidden=true;
+  if(state.workspaceOpen) renderRecCards();
+}
+function recStatus(r){
+  const st=state.invStatus[r.id], conv=state.invConvs[r.id];
+  if(st.closed) return 'applied';
+  if(conv&&conv.decisions&&conv.decisions[0]==='deny') return 'declined';
+  return 'pending';
+}
+function renderRecCards(){
+  const f=state.rec, meta=id=>REC_META[id]||{type:'Recommendation', devices:1, sources:[], impact:null};
+  const all=RECOMMENDATIONS.map(r=>({r, m:meta(r.id), status:recStatus(r)}));
+  // filter options with counts (zero-count options stay, disabled)
+  const sc={}, tc={}; all.forEach(x=>{ sc[x.status]=(sc[x.status]||0)+1; tc[x.m.type]=(tc[x.m.type]||0)+1; });
+  $('recStatusFilter').innerHTML=`<option value="">All statuses</option>`+['pending','applied','declined'].map(k=>`<option value="${k}" ${!(sc[k]||0)?'disabled':''} ${f.status===k?'selected':''}>${REC_STATUS_LABEL[k]} (${sc[k]||0})</option>`).join('');
+  $('recTypeFilter').innerHTML=`<option value="">All types</option>`+Object.keys(tc).sort().map(t=>`<option value="${esc(t)}" ${f.type===t?'selected':''}>${esc(t)} (${tc[t]})</option>`).join('');
+  document.querySelectorAll('#recBlastFilter option').forEach(o=>{ if(!o.value) return; const [lo,hi]=o.value.split('-').map(Number); o.disabled=!all.some(x=>x.m.devices>=lo&&x.m.devices<=hi); o.selected=f.blast===o.value; });
+  $('recSearchInput').value=f.q;
+  const q=f.q.trim().toLowerCase();
+  const visible=all.filter(x=>{
+    if(f.status&&x.status!==f.status) return false;
+    if(f.type&&x.m.type!==f.type) return false;
+    if(f.blast){ const [lo,hi]=f.blast.split('-').map(Number); if(x.m.devices<lo||x.m.devices>hi) return false; }
+    if(q&&!x.r.title.toLowerCase().includes(q)&&!x.m.type.toLowerCase().includes(q)&&!x.r.site.toLowerCase().includes(q)&&!x.r.id.includes(q)) return false;
+    return true;
+  });
+  $('recResultCount').textContent=`${visible.length} of ${all.length} recommendations`;
+  const activeId=state.activeConv&&state.activeConv.invId;
+  const money='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"></path><path d="M17 6.5c0-1.9-2.2-3.5-5-3.5s-5 1.6-5 3.5 2.2 3.5 5 3.5 5 1.6 5 3.5-2.2 3.5-5 3.5-5-1.6-5-3.5"></path></svg>';
+  const devIcon='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14v12H5z"></path><path d="M9 6v12"></path><path d="M15 6v12"></path></svg>';
+  const invIcon='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18v-2"></path><path d="M8.5 20h7"></path><path d="M8 14a4 4 0 1 1 8 0c0 1.1-.52 2.13-1.4 2.8L14 18h-4l-.6-1.2A4.02 4.02 0 0 1 8 14Z"></path></svg>';
+  $('recGrid').innerHTML=visible.length?visible.map(({r,m,status})=>`<button class="rec-tile ${r.id===activeId?'active':''}" type="button" data-inv="${r.id}">
+      <div class="rec-tile-head"><span class="rec-type-badge">${esc(m.type)}</span><span class="rec-status-pill" data-status="${status}">${REC_STATUS_LABEL[status]}</span></div>
+      <h2 class="rec-tile-title">${esc(r.title)}</h2>
+      <p class="rec-tile-sub">${esc(r.site)} · ${esc(r.id)}</p>
+      ${m.impact?`<div class="rec-tile-impact ${status==='declined'?'is-foregone':''}">${money}<span>${status==='declined'?'Foregone: ':status==='applied'?'Realized: ':'Est. '}~$${m.impact.estSavings.toLocaleString()}/mo · ~${m.impact.alertsPerMonth} fewer alert${m.impact.alertsPerMonth===1?'':'s'}/mo</span></div>`:''}
+      <div class="rec-tile-meta">
+        <span class="rec-tile-metric">${devIcon}<strong>${m.devices}</strong>&nbsp;device${m.devices===1?'':'s'}</span>
+        <span class="rec-tile-metric">${invIcon}<strong>${m.sources.length}</strong>&nbsp;investigation${m.sources.length===1?'':'s'}</span>
+        <span class="rec-tile-date">Proposed ${esc(r.opened)}</span>
+      </div>
+    </button>`).join(''):`<div class="loop-empty">No recommendations match these filters.</div>`;
 }
 
 /* =======================================================================
@@ -2748,6 +2831,10 @@ function renderActivity(){
     </div>`;
 }
 $('actPeriod').addEventListener('change',e=>{ state.actPeriod=e.target.value; renderActivity(); });
+$('recStatusFilter').addEventListener('change',e=>{ state.rec.status=e.target.value; renderRecCards(); });
+$('recTypeFilter').addEventListener('change',e=>{ state.rec.type=e.target.value; renderRecCards(); });
+$('recBlastFilter').addEventListener('change',e=>{ state.rec.blast=e.target.value; renderRecCards(); });
+$('recSearchInput').addEventListener('input',e=>{ state.rec.q=e.target.value; renderRecCards(); });
 function renderAll(){ renderRail(); renderChat(); renderSide(); renderActivity(); renderCornerFab(); renderLeftRail(); }
 /* Icon rail: "Dashboard" is this page, so it stays lit; clicking it returns
    to the blank home view. The other icons are placeholders. */
