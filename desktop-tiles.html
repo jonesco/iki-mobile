@@ -877,55 +877,7 @@
               <option value="30d">Last 30 days</option>
             </select>
           </div>
-          <div class="act-card">
-            <div class="act-card-hd">
-              <div class="act-title">Investigations</div>
-              <div class="act-toggle" id="actToggle">
-                <button class="on" data-acttab="valid"><svg class="icon" viewBox="0 0 16 16"><path d="M6.5 11.5L3 8l.9-.9 2.6 2.6 5.6-5.6.9.9z"/></svg>Valid</button>
-                <button data-acttab="dismissed"><svg class="icon" viewBox="0 0 16 16"><path d="M12 4.7l-.7-.7L8 7.3 4.7 4l-.7.7L7.3 8 4 11.3l.7.7L8 8.7l3.3 3.3.7-.7L8.7 8z"/></svg>Dismissed</button>
-              </div>
-              <div class="act-big" id="actBig">4</div>
-            </div>
-            <ul class="act-stages" id="actStages"></ul>
-          </div>
-          <div class="act-card">
-            <div class="act-title">Agent throughput</div>
-            <div class="act-rows">
-              <button class="act-row" data-start="How many investigations progressed on their own in the last 24 hours?">
-                <span class="act-row-label">Investigations progressed</span>
-                <span class="act-row-right"><span class="act-row-pct">81% advanced</span><span class="act-row-v">71</span></span>
-              </button>
-              <button class="act-row" data-start="What actions did you execute autonomously in the last 24 hours?">
-                <span class="act-row-label">Actions executed</span>
-                <span class="act-row-right"><span class="act-row-pct">95% success</span><span class="act-row-v">482</span></span>
-              </button>
-              <button class="act-row" data-start="What knowledge validations ran in the last 24 hours?">
-                <span class="act-row-label">Knowledge validations</span>
-                <span class="act-row-right"><span class="act-row-pct">90% pass</span><span class="act-row-v">61</span></span>
-              </button>
-              <button class="act-row" data-start="Has the average root cause time improved?">
-                <span class="act-row-label">Avg root cause time</span>
-                <span class="act-row-right"><span class="act-row-pct good">▼ 6m vs prior</span><span class="act-row-v mono">41 min</span></span>
-              </button>
-            </div>
-          </div>
-          <div class="act-card">
-            <div class="act-title">Observations collected</div>
-            <div class="act-donut-wrap">
-              <div class="act-donut-box">
-                <svg class="act-donut" viewBox="0 0 42 42">
-                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--layer-02)" stroke-width="5"/>
-                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--chart-4)" stroke-width="5" stroke-dasharray="66.67 33.33" stroke-dashoffset="25"/>
-                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--chart-2)" stroke-width="5" stroke-dasharray="33.33 66.67" stroke-dashoffset="-41.67"/>
-                </svg>
-                <div class="act-donut-total"><b>6</b><span>in period</span></div>
-              </div>
-              <ul class="act-legend">
-                <li><button data-start="What are the metric-based observations from the last 24 hours?"><span class="dot" style="background:var(--chart-2)"></span>Metric-based<b>2</b></button></li>
-                <li><button data-start="What are the alarm-based observations from the last 24 hours?"><span class="dot" style="background:var(--chart-4)"></span>Alarm-based<b>4</b></button></li>
-              </ul>
-            </div>
-          </div>
+          <div id="actCards"></div>
         </div>
       </div>
     </div>
@@ -1519,7 +1471,7 @@ const SEED_CONVS = [
 /* =======================================================================
    State
    ======================================================================= */
-const state = { tilesOpen:{}, convs: SEED_CONVS.map(c=>({...c, stepIdx:0, decisions:{}})), invConvs:{}, sideChats:{}, cardTabs:{}, activeConv:null, sideOpen:false, sideTab:'signals', invStatus:{}, invFilter:'all', wsFilter:'all', workspaceOpen:false, workspaceType:'inv', activityOpen:false, actTab:'valid', scrollToBottom:false, railOpen:true };
+const state = { actPeriod:'24h', tilesOpen:{}, convs: SEED_CONVS.map(c=>({...c, stepIdx:0, decisions:{}})), invConvs:{}, sideChats:{}, cardTabs:{}, activeConv:null, sideOpen:false, sideTab:'signals', invStatus:{}, invFilter:'all', wsFilter:'all', workspaceOpen:false, workspaceType:'inv', activityOpen:false, actTab:'valid', scrollToBottom:false, railOpen:true };
 [...INVESTIGATIONS, ...RECOMMENDATIONS].forEach(inv=>state.invStatus[inv.id]={stepIdx:0, closed:false});
 
 const $=(id)=>document.getElementById(id);
@@ -1563,6 +1515,150 @@ const ACTIVITY = {
   ]}
 };
 const invLink=(id)=>{ const i=inv(id); return `<button class="inline-link" data-inv="${i.id}">${esc(i.title)}</button>`; };
+/* Per-period activity data and answers (shared model with index-mobile.html) */
+const ACT_PERIODS={ '24h':{label:'the last 24 hours'}, '7d':{label:'the last 7 days'}, '30d':{label:'the last 30 days'} };
+
+const ACT_DATA={
+  '24h':{
+    valid:{count:4, stages:{initAnalyzed:0, causesId:3, remCreated:1, resolved:0}},
+    dismissed:{count:1, stages:{flagged:1, fpConfirmed:1, noAction:1, reopened:0}},
+    progressed:71, progressedPct:'81% advanced',
+    actions:482, actionsPct:'95% success',
+    validations:61, validationsPct:'90% pass',
+    rootCause:'41 min', rootCauseDelta:'▼ 6m vs prior', rootCauseGood:true,
+    metricObs:2, alarmObs:4
+  },
+  '7d':{
+    valid:{count:19, stages:{initAnalyzed:2, causesId:11, remCreated:5, resolved:1}},
+    dismissed:{count:6, stages:{flagged:6, fpConfirmed:5, noAction:4, reopened:1}},
+    progressed:438, progressedPct:'83% advanced',
+    actions:3140, actionsPct:'94% success',
+    validations:402, validationsPct:'88% pass',
+    rootCause:'38 min', rootCauseDelta:'▼ 4m vs prior', rootCauseGood:true,
+    metricObs:13, alarmObs:27
+  },
+  '30d':{
+    valid:{count:64, stages:{initAnalyzed:5, causesId:34, remCreated:19, resolved:6}},
+    dismissed:{count:21, stages:{flagged:21, fpConfirmed:18, noAction:15, reopened:3}},
+    progressed:1780, progressedPct:'84% advanced',
+    actions:12650, actionsPct:'93% success',
+    validations:1615, validationsPct:'89% pass',
+    rootCause:'44 min', rootCauseDelta:'▲ 3m vs prior', rootCauseGood:false,
+    metricObs:52, alarmObs:103
+  }
+};
+
+const ACT_STAGE_META={
+  valid:[
+    {key:'initAnalyzed', label:'Initially analyzed', icon:ICON.eye, q:()=>'Has anything been initially analyzed but not yet triaged?'},
+    {key:'causesId', label:'Causes identified', icon:ICON.chart, q:p=>`Which investigations had causes identified in ${ACT_PERIODS[p].label}?`},
+    {key:'remCreated', label:'Remediation created', icon:ICON.rem, q:()=>'Which investigation got a remediation created autonomously?'},
+    {key:'resolved', label:'Resolved', icon:ICON.check, q:()=>'Have any investigations been fully resolved autonomously without approval?'}
+  ],
+  dismissed:[
+    {key:'flagged', label:'Flagged for review', icon:ICON.eye, q:()=>'What got flagged for review as a possible false positive?'},
+    {key:'fpConfirmed', label:'False positive confirmed', icon:ICON.check, q:()=>'Was that false positive confirmed?'},
+    {key:'noAction', label:'No action needed', icon:ICON.check, q:()=>'What needed no further action after review?'},
+    {key:'reopened', label:'Reopened', icon:ICON.rem, q:()=>'Has anything dismissed been reopened?'}
+  ]
+};
+const ACT_THROUGHPUT_Q={
+  progressed:p=>`How many investigations progressed on their own in ${ACT_PERIODS[p].label}?`,
+  actions:p=>`What actions did you execute autonomously in ${ACT_PERIODS[p].label}?`,
+  validations:p=>`What knowledge validations ran in ${ACT_PERIODS[p].label}?`,
+  rootCause:()=>'Has the average root cause time improved?',
+  metricObs:p=>`What are the metric-based observations from ${ACT_PERIODS[p].label}?`,
+  alarmObs:p=>`What are the alarm-based observations from ${ACT_PERIODS[p].label}?`
+};
+// Looks a topic key up across both the stage buttons and the throughput/
+// donut rows — one place that knows how to turn any Activity-tab topic
+// into its current (period-phrased) question text.
+function actQuestionText(topic){
+  for(const tab of ['valid','dismissed']){
+    const hit=ACT_STAGE_META[tab].find(s=>s.key===topic);
+    if(hit) return hit.q(state.actPeriod);
+  }
+  return ACT_THROUGHPUT_Q[topic] ? ACT_THROUGHPUT_Q[topic](state.actPeriod) : '';
+}
+
+const ACT_A={
+  initAnalyzed:{
+    '24h':()=>`0 right now — everything that came in during this period has already moved past initial analysis into either a confirmed cause or a pending approval.`,
+    '7d':()=>`2 came in this period and are still waiting on initial triage — everything else already moved past that stage.`,
+    '30d':()=>`5 came in this period and are still waiting on initial triage.`
+  },
+  causesId:{
+    '24h':()=>`3: ${invLink('inv-2417')}, ${invLink('inv-2419')}, and ${invLink('inv-2421')} — all reached a confirmed root cause without you needing to dig through raw logs.`,
+    '7d':()=>`11 investigations reached a confirmed root cause this period, including ${invLink('inv-2417')}, ${invLink('inv-2419')}, and ${invLink('inv-2421')} still active now — the rest have already moved on to remediation or resolution.`,
+    '30d':()=>`34 investigations reached a confirmed root cause this period. Most have since moved to remediation or resolution; ${invLink('inv-2417')}, ${invLink('inv-2419')}, and ${invLink('inv-2421')} are the ones still active.`
+  },
+  remCreated:{
+    '24h':()=>`1: ${invLink('inv-2419')}. The agent drafted the storage-replication rate limit; it's sitting in <b>Investigations</b> waiting on your approval to apply.`,
+    '7d':()=>`5 remediations were drafted this period, including the storage-replication rate limit on ${invLink('inv-2419')} still waiting on your approval.`,
+    '30d':()=>`19 remediations were drafted this period. ${invLink('inv-2419')} is the one still waiting on your approval; the rest have already been applied or superseded.`
+  },
+  resolved:{
+    '24h':()=>`0 in this period — every investigation that reaches a real change still stops for your approval before anything gets applied or closed out.`,
+    '7d':()=>`1 in this period reached full resolution without a fresh approval — a repeat of a change you'd already approved before, applied automatically under that pre-approved policy.`,
+    '30d':()=>`6 in this period reached full resolution under a pre-approved policy — all repeats of changes you'd approved before.`
+  },
+  flagged:{
+    '24h':()=>`1 case was flagged and reviewed — ${invLink('inv-2423')}, a burst of auth attempts that matched a known safe pattern closely enough to warrant a second look before treating it as a real incident.`,
+    '7d':()=>`6 cases were flagged and reviewed this period, including ${invLink('inv-2423')}'s auth-pattern burst.`,
+    '30d':()=>`21 cases were flagged and reviewed this period.`
+  },
+  fpConfirmed:{
+    '24h':()=>`Yes — ${invLink('inv-2423')} was confirmed once checked against the security calendar, so it was dismissed without paging anyone.`,
+    '7d':()=>`5 of the 6 flagged cases were confirmed false positives, including ${invLink('inv-2423')} — dismissed without paging anyone.`,
+    '30d':()=>`18 of the 21 flagged cases were confirmed false positives.`
+  },
+  noAction:{
+    '24h':()=>`1 item was reviewed and closed with no action needed — the underlying signal resolved on its own before any change was required.`,
+    '7d':()=>`4 items were reviewed and closed with no action needed this period.`,
+    '30d':()=>`15 items were reviewed and closed with no action needed this period.`
+  },
+  reopened:{
+    '24h':()=>`0 — nothing dismissed in this period has come back. That's usually a good sign the dismissal was correct rather than premature.`,
+    '7d':()=>`1 — one dismissed case came back with a second, distinct occurrence and was reopened as a fresh investigation rather than treated as noise.`,
+    '30d':()=>`3 — a handful of dismissed cases came back over the month; each was reopened as its own investigation rather than assumed to be more noise.`
+  },
+  progressed:{
+    '24h':()=>`71 investigation steps advanced without anyone touching them — 81% of everything the agent attempted. Most of that is read-only checks and low-risk verifications; anything with real blast radius still lands in <b>Investigations</b> waiting on you.`,
+    '7d':()=>`438 investigation steps advanced without anyone touching them this period — 83% of everything the agent attempted.`,
+    '30d':()=>`1,780 investigation steps advanced without anyone touching them this period — 84% of everything the agent attempted.`
+  },
+  actions:{
+    '24h':()=>`482 actions ran on their own — mostly read-only diagnostics (interface checks, mtr runs, log queries) plus a handful of pre-approved low-risk remediations. 95% completed clean; the rest hit a guardrail and got escalated to a human approval instead of retrying blindly.`,
+    '7d':()=>`3,140 actions ran on their own this period — 94% completed clean; the rest hit a guardrail and got escalated to a human approval instead of retrying blindly.`,
+    '30d':()=>`12,650 actions ran on their own this period — 93% completed clean.`
+  },
+  validations:{
+    '24h':()=>`61 knowledge validations — checks against the runbook and prior incident history to confirm a hypothesis before acting on it. 90% passed; the failures are exactly why some investigations still need your input instead of a fully automated fix.`,
+    '7d':()=>`402 knowledge validations ran this period — 88% passed.`,
+    '30d':()=>`1,615 knowledge validations ran this period — 89% passed.`
+  },
+  rootCause:{
+    '24h':()=>`Average time to root cause is 41 minutes, down 6 minutes from the prior period. Most of that gain came from catching physical-layer signals (optics, CRC errors) earlier instead of waiting for a second or third flap.`,
+    '7d':()=>`Average time to root cause over this period is 38 minutes, down 4 minutes from the prior period.`,
+    '30d':()=>`Average time to root cause over this period is 44 minutes, up 3 minutes from the prior period — a couple of unusually slow multi-cause investigations pulled the average up.`
+  },
+  metricObs:{
+    '24h':()=>`2 observations came from metric thresholds — sustained deviations like utilization or latency crossing a set bound, as opposed to a device firing an alarm on its own.`,
+    '7d':()=>`13 observations came from metric thresholds this period.`,
+    '30d':()=>`52 observations came from metric thresholds this period.`
+  },
+  alarmObs:{
+    '24h':()=>`4 observations came from device-fired alarms — things like BGP hold-timer expiry or a PSU fault notification, which tend to be faster to catch than a slow metric drift.`,
+    '7d':()=>`27 observations came from device-fired alarms this period.`,
+    '30d':()=>`103 observations came from device-fired alarms this period.`
+  }
+};
+function actAnswerHTML(topic){ const fn=ACT_A[topic] && ACT_A[topic][state.actPeriod]; return fn?`<p>${fn()}</p>`:''; }
+function activityAnswerForText(text){
+  const topics=[].concat(ACT_STAGE_META.valid.map(s=>s.key), ACT_STAGE_META.dismissed.map(s=>s.key), Object.keys(ACT_THROUGHPUT_Q));
+  const topic=topics.find(k=>actQuestionText(k)===text);
+  return topic?actAnswerHTML(topic):null;
+}
 const ACTIVITY_ANSWERS = {
   'How many investigations progressed on their own in the last 24 hours?': `<p>71 investigation steps advanced without anyone touching them — 81% of everything the agent attempted. Most of that is read-only checks and low-risk verifications; anything with real blast radius still lands in <b>Investigations</b> waiting on you.</p>`,
   'What actions did you execute autonomously in the last 24 hours?': `<p>482 actions ran on their own — mostly read-only diagnostics (interface checks, mtr runs, log queries) plus a handful of pre-approved low-risk remediations. 95% completed clean; the rest hit a guardrail and got escalated to a human approval instead of retrying blindly.</p>`,
@@ -2609,6 +2705,7 @@ function send(text){
   pushTyping(()=>{ say(conv, {role:'assist',html:reply(text, conv)}); state.scrollToBottom=true; renderChat(); });
 }
 function reply(text, conv){
+  { const a=activityAnswerForText(text); if(a) return a; }
   if(ACTIVITY_ANSWERS[text]) return ACTIVITY_ANSWERS[text];
   const t=text.toLowerCase(); const i=conv.invId?inv(conv.invId):null;
   if(i){
@@ -2656,12 +2753,50 @@ function renderActivity(){
   const blank=!state.activeConv;
   $('activityPanel').classList.toggle('show', blank&&state.activityOpen);
   if(!blank||!state.activityOpen) return;
-  const data=ACTIVITY[state.actTab];
-  document.querySelectorAll('#actToggle button').forEach(b=>b.classList.toggle('on', b.dataset.acttab===state.actTab));
-  $('actBig').textContent=data.count;
-  $('actBig').classList.toggle('dismissed', state.actTab==='dismissed');
-  $('actStages').innerHTML=data.stages.map(s=>`<li><button class="${s.v>0?'has-v':''}" data-start="${esc(s.q)}"><span class="act-stage-icon">${s.icon}</span><span class="act-stage-label">${esc(s.label)}</span><span class="act-stage-v">${s.v}</span></button></li>`).join('');
+  const p=state.actPeriod, d=ACT_DATA[p], data=d[state.actTab];
+  $('actPeriod').value=p;
+  const alarmPct=d.alarmObs/(d.metricObs+d.alarmObs)*100, metricPct=100-alarmPct;
+  const row=(label,pct,val,q,good)=>`<button class="act-row" data-start="${esc(actQuestionText(q))}"><span class="act-row-label">${esc(label)}</span><span class="act-row-right"><span class="act-row-pct${good?' good':''}">${esc(pct)}</span><span class="act-row-v${good?' mono':''}">${esc(val)}</span></span></button>`;
+  $('actCards').innerHTML=`
+    <div class="act-card">
+      <div class="act-card-hd">
+        <div class="act-title">Investigations</div>
+        <div class="act-toggle" id="actToggle">
+          <button class="${state.actTab==='valid'?'on':''}" data-acttab="valid"><svg class="icon" viewBox="0 0 16 16"><path d="M6.5 11.5L3 8l.9-.9 2.6 2.6 5.6-5.6.9.9z"/></svg>Valid</button>
+          <button class="${state.actTab==='dismissed'?'on':''}" data-acttab="dismissed"><svg class="icon" viewBox="0 0 16 16"><path d="M12 4.7l-.7-.7L8 7.3 4.7 4l-.7.7L7.3 8 4 11.3l.7.7L8 8.7l3.3 3.3.7-.7L8.7 8z"/></svg>Dismissed</button>
+        </div>
+        <div class="act-big ${state.actTab==='dismissed'?'dismissed':''}" id="actBig">${data.count}</div>
+      </div>
+      <ul class="act-stages" id="actStages">${ACT_STAGE_META[state.actTab].map(s=>{ const v=data.stages[s.key]; return `<li><button class="${v>0?'has-v':''}" data-start="${esc(s.q(p))}"><span class="act-stage-icon">${s.icon}</span><span class="act-stage-label">${esc(s.label)}</span><span class="act-stage-v">${v}</span></button></li>`; }).join('')}</ul>
+    </div>
+    <div class="act-card">
+      <div class="act-title">Agent throughput</div>
+      <div class="act-rows">
+        ${row('Investigations progressed', d.progressedPct, String(d.progressed), 'progressed')}
+        ${row('Actions executed', d.actionsPct, String(d.actions), 'actions')}
+        ${row('Knowledge validations', d.validationsPct, String(d.validations), 'validations')}
+        ${row('Avg root cause time', d.rootCauseDelta, d.rootCause, 'rootCause', d.rootCauseGood)}
+      </div>
+    </div>
+    <div class="act-card">
+      <div class="act-title">Observations collected</div>
+      <div class="act-donut-wrap">
+        <div class="act-donut-box">
+          <svg class="act-donut" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--layer-02)" stroke-width="5"/>
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--chart-4)" stroke-width="5" stroke-dasharray="${alarmPct.toFixed(2)} ${(100-alarmPct).toFixed(2)}" stroke-dashoffset="25"/>
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="var(--chart-2)" stroke-width="5" stroke-dasharray="${metricPct.toFixed(2)} ${(100-metricPct).toFixed(2)}" stroke-dashoffset="${(25-alarmPct).toFixed(2)}"/>
+          </svg>
+          <div class="act-donut-total"><b>${d.metricObs+d.alarmObs}</b><span>in period</span></div>
+        </div>
+        <ul class="act-legend">
+          <li><button data-start="${esc(actQuestionText('metricObs'))}"><span class="dot" style="background:var(--chart-2)"></span>Metric-based<b>${d.metricObs}</b></button></li>
+          <li><button data-start="${esc(actQuestionText('alarmObs'))}"><span class="dot" style="background:var(--chart-4)"></span>Alarm-based<b>${d.alarmObs}</b></button></li>
+        </ul>
+      </div>
+    </div>`;
 }
+$('actPeriod').addEventListener('change',e=>{ state.actPeriod=e.target.value; renderActivity(); });
 function renderAll(){ renderRail(); renderChat(); renderSide(); renderActivity(); renderCornerFab(); renderLeftRail(); }
 /* Icon rail: "Dashboard" is this page, so it stays lit; clicking it returns
    to the blank home view. The other icons are placeholders. */
