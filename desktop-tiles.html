@@ -355,6 +355,18 @@
   .ws-hd[hidden],.ws-body[hidden]{display:none}
   /* Recommendations as cards (pattern from demos/dashboard2/close-the-loop.html, this page's styling) */
   .rec-loop{max-width:1600px;margin:0 auto;padding-top:16px}
+  .rec-loop[hidden],.conv-loop[hidden]{display:none}
+  /* Past conversations view: search + list */
+  .conv-loop{max-width:1600px;margin:0 auto;padding-top:16px}
+  .conv-loop .loop-toolbar{margin-bottom:8px}
+  .conv-list{border:1px solid var(--border-subtle);background:var(--layer-01)}
+  .conv-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--border-subtle);padding:12px 16px;color:var(--text-primary);font-size:14px}
+  .conv-row:last-child{border-bottom:0}
+  .conv-row:hover{background:var(--layer-hover)}
+  .conv-row .icon{width:16px;height:16px;flex:none;color:var(--text-helper)}
+  .conv-row .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .conv-row .src{font-size:12px;color:var(--text-helper);white-space:nowrap;max-width:40%;overflow:hidden;text-overflow:ellipsis}
+  .conv-row .when{font-size:12px;color:var(--text-helper);white-space:nowrap;flex:none;min-width:64px;text-align:right}
   /* header band and card body share one centered column (and the collapsed-rail inset) */
   .ws-hd,.ws-body{width:100%;max-width:1648px;margin:0 auto}
   .app.rail-collapsed .ws-hd,.app.rail-collapsed .ws-body{padding-left:120px;padding-right:120px;max-width:1840px}
@@ -882,6 +894,7 @@
     <section class="rail-section grow collapsed" style="border-top:1px solid var(--border-subtle)">
       <h2>Past conversations <span class="count" id="convCount"></span><button class="chevron-btn solo" data-collapse aria-label="Collapse section" title="Collapse section"><svg class="icon" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button></h2>
       <div class="rail-list" id="convList"></div>
+      <div class="rail-foot" id="convFoot"></div>
     </section>
     <div class="resize-h" id="railResize"></div>
   </aside>
@@ -948,6 +961,16 @@
           </div>
           <p class="loop-result-count" id="recResultCount"></p>
           <div class="rec-grid" id="recGrid"></div>
+        </div>
+        <div class="conv-loop" id="convLoop" hidden>
+          <div class="loop-toolbar">
+            <label class="loop-search" aria-label="Search past conversations">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="4.5"></circle><path d="M13.5 13.5 19 19"></path></svg>
+              <input type="search" id="convSearchInput" placeholder="Search past conversations">
+            </label>
+          </div>
+          <p class="loop-result-count" id="convResultCount"></p>
+          <div class="conv-list" id="convListAll"></div>
         </div>
       </div>
 
@@ -1882,19 +1905,33 @@ function renderRail(){
   const convs=[...state.convs].reverse();
   $('convCount').textContent=convs.length;
   $('convList').innerHTML=convs.length?convs.map(c=>`<button class="conv ${state.activeConv===c?'active':''}" data-conv="${c.id}">${c.sideOf?ICON.eye.replace('class="icon"','class="icon" style="color:var(--text-helper)"'):ICON.chat}<span class="t">${esc(c.title)}</span><span class="when">${esc(c.when||'now')}</span></button>`).join(''):'<div class="rail-empty">Nothing yet. Open an investigation to start one.</div>';
+  $('convFoot').innerHTML=`<button class="all-link" id="convAllLink">${ICON.ext}All past conversations<span class="c">${state.convs.length}</span></button>`;
   renderWorkspace();
 }
 function renderWorkspace(){
   $('workspace').hidden=!state.workspaceOpen;
-  const isRec=state.workspaceType==='rec', isTracked=state.workspaceType==='tracked';
-  // Investigations (and Tracked) use the ported full table; recommendations keep the simple one.
-  $('invWs').hidden=isRec;
-  $('workspace').querySelector('.ws-hd').hidden=!isRec;
-  $('workspace').querySelector('.ws-body').hidden=!isRec;
-  if(!isRec){ if(state.workspaceOpen) renderInvTable(); return; }
-  $('wsTitle').textContent='Recommendations';
+  const isRec=state.workspaceType==='rec', isConv=state.workspaceType==='conv', isTracked=state.workspaceType==='tracked';
+  // Investigations (and Tracked) use the ported full table; recommendations are cards; past conversations a searchable list.
+  $('invWs').hidden=isRec||isConv;
+  $('workspace').querySelector('.ws-hd').hidden=!(isRec||isConv);
+  $('workspace').querySelector('.ws-body').hidden=!(isRec||isConv);
+  if(!(isRec||isConv)){ if(state.workspaceOpen) renderInvTable(); return; }
+  $('wsTitle').textContent=isRec?'Recommendations':'Past conversations';
   $('wsFilters').hidden=true; $('wsPeriod').hidden=true;
-  if(state.workspaceOpen) renderRecCards();
+  document.querySelector('.rec-loop').hidden=!isRec; $('convLoop').hidden=!isConv;
+  if(!state.workspaceOpen) return;
+  if(isRec) renderRecCards(); else renderConvList();
+}
+function renderConvList(){
+  const q=(state.convQ||'').trim().toLowerCase();
+  const all=[...state.convs].reverse();
+  const text=c=>(c.title+' '+(c.messages||[]).map(m=>m.text||(m.html||'').replace(/<[^>]+>/g,' ')).join(' ')).toLowerCase();
+  const vis=all.filter(c=>!q||text(c).includes(q));
+  $('convSearchInput').value=state.convQ||'';
+  $('convResultCount').textContent=`${vis.length} of ${all.length} conversations`;
+  $('convListAll').innerHTML=vis.length?vis.map(c=>{ const src=c.sideOf?inv(c.sideOf):null; const icon=c.sideOf?ICON.eye:ICON.chat;
+    return `<button class="conv-row" data-conv="${c.id}">${icon}<span class="t">${esc(c.title)}</span>${src?`<span class="src">${esc(src.id)} · ${esc(src.title)}</span>`:''}<span class="when">${esc(c.when||'now')}</span></button>`; }).join('')
+    :`<div class="loop-empty">No conversations match "${esc(q)}".</div>`;
 }
 function recStatus(r){
   const st=state.invStatus[r.id], conv=state.invConvs[r.id];
@@ -2673,7 +2710,7 @@ function openInvestigation(id){
   if(!keepSide){ state.sideOpen=false; state.sideTab='signals'; }
   renderAll();
 }
-function openConv(id){ leaveInvestigationSession(); state.activeConv=state.convs.find(c=>c.id===id); state.sideOpen=false; state.scrollToBottom=true; renderAll(); }
+function openConv(id){ leaveInvestigationSession(); state.activeConv=state.convs.find(c=>c.id===id); state.sideOpen=false; state.workspaceOpen=false; state.activityOpen=false; state.scrollToBottom=true; renderAll(); }
 function newChat(opts){ leaveInvestigationSession(); state.activeConv=null; state.sideOpen=false; state.activityOpen=false; state.workspaceOpen=false; renderAll(); if(!(opts&&opts.noFocus)) $('input').focus(); }
 
 function decide(idx, dec){
@@ -2887,6 +2924,7 @@ $('recStatusFilter').addEventListener('change',e=>{ state.rec.status=e.target.va
 $('recTypeFilter').addEventListener('change',e=>{ state.rec.type=e.target.value; renderRecCards(); });
 $('recBlastFilter').addEventListener('change',e=>{ state.rec.blast=e.target.value; renderRecCards(); });
 $('recSearchInput').addEventListener('input',e=>{ state.rec.q=e.target.value; renderRecCards(); });
+$('convSearchInput').addEventListener('input',e=>{ state.convQ=e.target.value; renderConvList(); });
 function renderAll(){ renderRail(); renderChat(); renderSide(); renderActivity(); renderCornerFab(); renderLeftRail(); }
 /* Icon rail: "Dashboard" is this page, so it stays lit; clicking it returns
    to the blank home view. The other icons are placeholders. */
@@ -2924,6 +2962,7 @@ document.addEventListener('click',(e)=>{
   if(b.dataset.wsfilter){ state.wsFilter=state.wsFilter===b.dataset.wsfilter?'all':b.dataset.wsfilter; return renderAll(); }
   if(b.id==='invExpand'||b.id==='invAllLink'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; WS.view='valid'; WS.stage=null; WS.page=1; return renderAll(); }
   if(b.id==='recExpand'){ state.workspaceOpen=true; state.workspaceType='rec'; state.activityOpen=false; return renderAll(); }
+  if(b.id==='convAllLink'){ state.workspaceOpen=true; state.workspaceType='conv'; state.activityOpen=false; return renderAll(); }
   if(b.id==='trackedLink'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; WS.view='tracked'; WS.stage=null; WS.page=1; return renderAll(); }
   if(b.id==='fabActivity'){
     if(b.dataset.mode==='inv-close') return newChat();
