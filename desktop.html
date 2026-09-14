@@ -79,13 +79,15 @@
   .new-chat-btn .icon{width:12px;height:12px}
   .rail-section{display:flex;flex-direction:column;min-height:0}
   .rail-section.grow{flex:0 1 auto}
-  .rail-section h2{margin:0;padding:12px 16px;background:var(--layer-02);display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.32px;text-transform:uppercase;color:var(--text-helper)}
+  .rail-section h2{margin:0;padding:12px 16px;background:var(--layer-02);display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;letter-spacing:.32px;text-transform:uppercase;color:var(--text-helper);cursor:pointer;user-select:none}
+  .rail-section h2:hover{background:var(--layer-hover-02)}
+  .rail-section h2 .lbl{margin-right:2px}
   .rail-section h2 .count{font-weight:400;color:var(--text-secondary)}
   .rail-section h2 .tblbtn{margin-left:auto;width:22px;height:22px;padding:0;border:0;background:transparent;color:var(--text-helper);display:inline-flex;align-items:center;justify-content:center}
   .rail-section h2 .tblbtn .icon{width:14px;height:14px}
   .rail-section h2 .tblbtn:hover{background:var(--layer-hover);color:var(--text-primary)}
   .rail-section h2 .chevron-btn{width:22px;height:22px;padding:0;border:0;background:transparent;color:var(--text-helper);display:inline-flex;align-items:center;justify-content:center;flex:none}
-  .rail-section h2 .chevron-btn.solo{margin-left:auto}
+  .rail-section h2 .tblbtn{margin-left:auto}
   .rail-section h2 .chevron-btn .icon{width:14px;height:14px;transition:transform .15s ease;transform:rotate(180deg)} /* open = up */
   .rail-section h2 .chevron-btn:hover{background:var(--layer-hover);color:var(--text-primary)}
   .rail-section.collapsed .chevron-btn .icon{transform:none} /* collapsed = down */
@@ -99,11 +101,30 @@
   .filter-seg button .c{color:var(--text-helper)}
   .filter-seg button.on .c{color:#525252}
   .rail-list{overflow-y:auto;overflow-x:hidden;min-height:0}
+  /* Status tiles: one per status, expand to reveal the investigations inside */
+  .tiles{display:flex;flex-direction:column;gap:8px;padding:12px}
   .rail-foot{flex:none;padding:12px 12px 12px}
+  /* the attention section keeps its full height (up to half the rail); the sections below share what's left */
+  .rail-section.grow.attention{flex:0 0 auto;max-height:50%}
   .all-link{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 8px;background:transparent;border:0;color:var(--link);font-size:13px}
   .all-link:hover{background:var(--layer-hover);color:var(--text-primary)}
   .all-link .icon{width:12px;height:12px}
   .all-link .c{background:var(--layer-02);color:var(--text-primary);border-radius:8px;min-width:16px;height:16px;padding:0 5px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+  .tile{background:var(--layer-02);border:1px solid transparent}
+  .tile.has-active{border-color:var(--interactive)}
+  .tile-hd{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:0;padding:12px;color:var(--text-primary)}
+  .tile-hd:hover{background:var(--layer-hover-02)}
+  .tile-hd .tile-t{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:18px}
+  .tile-hd .tile-n{font-size:12px;color:var(--text-primary);background:#525252;border-radius:9px;min-width:18px;height:18px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+  .tile-hd .chev{width:14px;height:14px;color:var(--text-helper);transition:transform .15s ease;flex:none}
+  .tile.open .tile-hd .chev{transform:rotate(180deg)}
+  .tile-body{display:none;border-top:1px solid var(--border-strong)}
+  .tile.open .tile-body{display:block}
+  .tile .inv{background:transparent;border-bottom:1px solid var(--border-strong)}
+  .tile .inv:last-child{border-bottom:0}
+  .tile .inv:hover{background:var(--layer-hover-02)}
+  .tile .inv .body{padding:10px 12px}
+  .tile .inv .need{margin-top:6px}
   .inv{display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--border-strong);padding:0}
   .inv:hover{background:var(--layer-hover)}
   .inv.active{box-shadow:inset 3px 0 0 var(--interactive)}
@@ -862,18 +883,19 @@
       </button>
       <button class="railtoggle-btn" id="railToggle" aria-label="Hide sidebar" title="Hide sidebar"><svg class="icon" viewBox="0 0 16 16"><path d="M1 2h14v12H1zm5 1H2v10h4zm1 0v10h7V3z"/></svg></button>
     </div>
-    <section class="rail-section grow">
-      <h2>Investigations <span class="count" id="invCount"></span><button class="tblbtn" id="invExpand" aria-label="Open list view" title="Open list view"><svg class="icon" viewBox="0 0 16 16"><path d="M1 2h2v2H1zm4 0h10v2H5zM1 7h2v2H1zm4 0h10v2H5zm-4 5h2v2H1zm4 0h10v2H5z"/></svg></button><button class="chevron-btn" data-collapse aria-label="Collapse section" title="Collapse section"><svg class="icon" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button></h2>
+    <section class="rail-section grow attention">
+      <h2><span class="lbl">Investigations</span><button class="chevron-btn" data-collapse aria-label="Toggle section" title="Toggle section"><svg class="icon" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button><button class="tblbtn" id="invExpand" aria-label="Open list view" title="Open list view"><svg class="icon" viewBox="0 0 16 16"><path d="M1 2h2v2H1zm4 0h10v2H5zM1 7h2v2H1zm4 0h10v2H5zm-4 5h2v2H1zm4 0h10v2H5z"/></svg></button></h2>
       <div class="filter-seg" id="invFilters"></div>
       <div class="rail-list" id="invList"></div>
+      <div class="rail-foot" id="invFoot"></div>
     </section>
-    <section class="rail-section grow" style="border-top:1px solid var(--border-subtle)">
-      <h2>Recommendations <span class="count" id="recCount"></span><button class="tblbtn" id="recExpand" aria-label="Open card view" title="Open card view"><svg class="icon" viewBox="0 0 16 16"><path d="M1 1h6v6H1zm8 0h6v6H9zM1 9h6v6H1zm8 0h6v6H9z"/></svg></button><button class="chevron-btn" data-collapse aria-label="Collapse section" title="Collapse section"><svg class="icon" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button></h2>
+    <section class="rail-section grow collapsed" style="border-top:1px solid var(--border-subtle)">
+      <h2><span class="lbl">Recommendations</span><button class="chevron-btn" data-collapse aria-label="Toggle section" title="Toggle section"><svg class="icon" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button><button class="tblbtn" id="recExpand" aria-label="Open card view" title="Open card view"><svg class="icon" viewBox="0 0 16 16"><path d="M1 1h6v6H1zm8 0h6v6H9zM1 9h6v6H1zm8 0h6v6H9z"/></svg></button></h2>
       <div class="rail-list" id="recList"></div>
       <div class="rail-foot" id="recFoot"></div>
     </section>
-    <section class="rail-section grow" style="border-top:1px solid var(--border-subtle)">
-      <h2>Past conversations <span class="count" id="convCount"></span><button class="chevron-btn solo" data-collapse aria-label="Collapse section" title="Collapse section"><svg class="icon" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button></h2>
+    <section class="rail-section grow collapsed" style="border-top:1px solid var(--border-subtle)">
+      <h2><span class="lbl">Past conversations</span><button class="chevron-btn" data-collapse aria-label="Toggle section" title="Toggle section"><svg class="icon" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button></h2>
       <div class="rail-list" id="convList"></div>
       <div class="rail-foot" id="convFoot"></div>
     </section>
@@ -1533,7 +1555,7 @@ const SEED_CONVS = [
 /* =======================================================================
    State
    ======================================================================= */
-const state = { rec:{status:'',type:'',blast:'',q:''}, actPeriod:'24h', convs: SEED_CONVS.map(c=>({...c, stepIdx:0, decisions:{}})), invConvs:{}, sideChats:{}, cardTabs:{}, activeConv:null, sideOpen:false, sideTab:'signals', invStatus:{}, invFilter:'all', wsFilter:'all', workspaceOpen:false, workspaceType:'inv', activityOpen:false, actTab:'valid', scrollToBottom:false, railOpen:true };
+const state = { rec:{status:'',type:'',blast:'',q:''}, actPeriod:'24h', tilesOpen:{}, convs: SEED_CONVS.map(c=>({...c, stepIdx:0, decisions:{}})), invConvs:{}, sideChats:{}, cardTabs:{}, activeConv:null, sideOpen:false, sideTab:'signals', invStatus:{}, invFilter:'all', wsFilter:'all', workspaceOpen:false, workspaceType:'inv', activityOpen:false, actTab:'valid', scrollToBottom:false, railOpen:true };
 [...INVESTIGATIONS, ...RECOMMENDATIONS].forEach(inv=>state.invStatus[inv.id]={stepIdx:0, closed:false});
 
 const $=(id)=>document.getElementById(id);
@@ -1839,21 +1861,41 @@ function renderRail(){
   // active rail the same way closed ones do — nothing here needs a
   // human right now, so it shouldn't keep sitting in the list implying
   // otherwise. Still reachable through its own conversation if wanted.
-  const rows=INVESTIGATIONS.filter(i=>!i.passive&&!state.invStatus[i.id].reanalyzing).map(i=>({i,need:needFor(i),stage:stageFor(i)})).filter(r=>r.need.cls!=='closed'&&r.need.cls!=='reanalyzing');
-  $('invCount').textContent=rows.length;
-  $('invFilters').innerHTML=filterSegHTML(false,'invFilter');
-  const filteredRows=rows.filter(r=>state.invFilter==='all'||r.need.cls===state.invFilter);
-  $('invList').innerHTML=filteredRows.length?filteredRows.map(({i,stage})=>{
-    const active=state.activeConv&&state.activeConv.invId===i.id;
-    return `<button class="inv ${active?'active':''}" data-inv="${i.id}">
-      <span class="body">
-        <span class="title">${esc(i.title)}</span>
-        <span class="meta"><span>${esc(i.site)}</span><span>· ${esc(i.opened)}</span></span>
-        <span class="need ${stage.cls}">${needBadge(stage)}${stage.t}</span>
-      </span></button>`;
-  }).join(''):`<div class="rail-empty">Nothing needs ${esc((FILTERS.find(f=>f.k===state.invFilter)||{}).l||'').toLowerCase()} right now.</div>`;
+  // Status tiles over the complete list: every investigation lands in exactly
+  // one tile, ordered by how urgently it needs a person. Empty tiles are not
+  // shown. A tile expands to reveal its investigations; the tile holding the
+  // open investigation is always expanded.
+  const TILES=[
+    {key:'tool', cls:'tool', label:'Tool approval', icon:ICON.pause},
+    {key:'rem', cls:'rem', label:'Remediation approval', icon:ICON.pause},
+    {key:'input', cls:'input', label:'Needs input', icon:ICON.ask}
+  ];
+  const tileKey=(i,need)=>attentionKey(need);
+  const all=INVESTIGATIONS.map(i=>({i,need:needFor(i)})).sort((a,b)=>(a.i.updatedMin||0)-(b.i.updatedMin||0));
+  const activeId=state.activeConv&&state.activeConv.invId;
+  const needsYou=all.filter(r=>tileKey(r.i,r.need)).length;
+  
+  $('invFilters').hidden=true;
+  $('invList').innerHTML=`<div class="tiles">`+(needsYou?'':`<div class="rail-empty" style="padding:4px 4px 8px;text-align:left">Nothing needs you right now.</div>`)+TILES.map(t=>{
+    const items=all.filter(r=>tileKey(r.i,r.need)===t.key); if(!items.length) return '';
+    const hasActive=items.some(r=>r.i.id===activeId);
+    // Opening an investigation expands its tile once (see openInvestigation);
+    // after that the tile collapses and expands freely like any other.
+    const open=state.tilesOpen[t.key]!==undefined?!!state.tilesOpen[t.key]:hasActive;
+    const showNeed=false;
+    return `<div class="tile ${open?'open':''} ${hasActive?'has-active':''}" data-tilekey="${t.key}">
+      <button class="tile-hd" data-tile="${t.key}" aria-expanded="${open}"><span class="need-badge ${t.cls}">${t.icon}</span><span class="tile-t">${t.label}</span><span class="tile-n">${items.length}</span><svg class="icon chev" viewBox="0 0 16 16"><path d="M8 11L2.5 5.5l1-1L8 9l4.5-4.5 1 1z"/></svg></button>
+      <div class="tile-body">${items.map(({i,need})=>`<button class="inv ${i.id===activeId?'active':''}" data-inv="${i.id}">
+        <span class="body">
+          <span class="title">${esc(i.title)}</span>
+          <span class="meta"><span>${esc(i.site)}</span><span>· ${esc(i.opened)}</span></span>
+          ${showNeed?`<span class="need ${need.cls}">${needBadge(need)}${esc(need.t)}</span>`:''}
+        </span></button>`).join('')}</div>
+    </div>`;
+  }).join('')+`</div>`;
+  $('invFoot').innerHTML=`<button class="all-link" id="invAllLink">${ICON.ext}All investigations<span class="c">${all.length}</span></button>`;
   const openRecs=RECOMMENDATIONS.filter(r=>needFor(r).cls!=='closed');
-  $('recCount').textContent=openRecs.length;
+  
   $('recList').innerHTML=openRecs.length?openRecs.map(r=>{
     const need=needFor(r), active=state.activeConv&&state.activeConv.invId===r.id;
     return `<button class="inv ${active?'active':''}" data-inv="${r.id}">
@@ -1864,7 +1906,7 @@ function renderRail(){
       </span></button>`;
   }).join(''):'<div class="rail-empty">Nothing pending.</div>';
   const convs=[...state.convs].reverse();
-  $('convCount').textContent=convs.length;
+  
   $('convList').innerHTML=convs.length?convs.map(c=>`<button class="conv ${state.activeConv===c?'active':''}" data-conv="${c.id}">${c.sideOf?ICON.eye.replace('class="icon"','class="icon" style="color:var(--text-helper)"'):ICON.chat}<span class="t">${esc(c.title)}</span><span class="when">${esc(c.when||'now')}</span></button>`).join(''):'<div class="rail-empty">Nothing yet. Open an investigation to start one.</div>';
   $('recFoot').innerHTML=`<button class="all-link" id="recAllLink">${ICON.ext}All recommendations<span class="c">${RECOMMENDATIONS.length}</span></button>`;
   $('convFoot').innerHTML=`<button class="all-link" id="convAllLink">${ICON.ext}All past conversations<span class="c">${state.convs.length}</span></button>`;
@@ -2650,9 +2692,13 @@ function submitContribute(){
 /* =======================================================================
    Conversations & flow
    ======================================================================= */
+/* The rail is only what needs a person: tool approval, remediation approval,
+   needs input. Everything else lives in the table. */
+function attentionKey(need){ return (need.cls==='tool'||need.cls==='rem'||need.cls==='input')?need.cls:null; }
 function openInvestigation(id){
   state.workspaceOpen=false;
   state.activityOpen=false;
+  { const k=attentionKey(needFor(inv(id))); if(k) state.tilesOpen[k]=true; }
   // If the details sidebar is already out on an investigation, it stays out on
   // the same tab and simply changes context to the new one.
   const keepSide=!!(state.sideOpen&&state.activeConv&&state.activeConv.invId);
@@ -2899,6 +2945,7 @@ function autosize(){ const ta=$('input'); ta.style.height='auto'; ta.style.heigh
 document.addEventListener('click',(e)=>{
   const b=e.target.closest('button'); if(!b) return;
   if(b.dataset.inv) return openInvestigation(b.dataset.inv);
+  if(b.dataset.tile){ const tile=b.closest('.tile'); state.tilesOpen[b.dataset.tile]=!(tile&&tile.classList.contains('open')); return renderRail(); }
   if(b.dataset.conv) return openConv(b.dataset.conv);
   if(b.id==='newChat') return newChat();
   if(b.dataset.railnav==='home'){ newChat({noFocus:true}); return b.blur(); }
@@ -2918,7 +2965,7 @@ document.addEventListener('click',(e)=>{
   if(b.dataset.start){ return send(b.dataset.start); }
   if(b.dataset.filter){ state.invFilter=state.invFilter===b.dataset.filter?'all':b.dataset.filter; return renderAll(); }
   if(b.dataset.wsfilter){ state.wsFilter=state.wsFilter===b.dataset.wsfilter?'all':b.dataset.wsfilter; return renderAll(); }
-  if(b.id==='invExpand'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; WS.view='valid'; WS.stage=null; WS.page=1; return renderAll(); }
+  if(b.id==='invExpand'||b.id==='invAllLink'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; WS.view='valid'; WS.stage=null; WS.page=1; return renderAll(); }
   if(b.id==='recExpand'||b.id==='recAllLink'){ state.workspaceOpen=true; state.workspaceType='rec'; state.activityOpen=false; return renderAll(); }
   if(b.id==='convAllLink'){ state.workspaceOpen=true; state.workspaceType='conv'; state.activityOpen=false; return renderAll(); }
   if(b.id==='trackedLink'){ state.workspaceOpen=true; state.workspaceType='inv'; state.activityOpen=false; WS.view='tracked'; WS.stage=null; WS.page=1; return renderAll(); }
@@ -3323,6 +3370,9 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('timeframeModal
 $('timeframeSliderStart').addEventListener('mousedown', tfStartDrag(true)); $('timeframeSliderStart').addEventListener('touchstart', tfStartDrag(true), {passive:false});
 $('timeframeSliderEnd').addEventListener('mousedown', tfStartDrag(false)); $('timeframeSliderEnd').addEventListener('touchstart', tfStartDrag(false), {passive:false});
 wsApplyTimeframe('Last 24 hours');
+
+/* rail section headers: the whole row toggles the section; the list/grid button keeps its own action */
+document.addEventListener('click',e=>{ const h=e.target.closest('.rail-section > h2'); if(!h||e.target.closest('button')) return; h.closest('.rail-section').classList.toggle('collapsed'); });
 
 /* charts in the main pane are drawn to the container width, so redraw on resize */
 let resizeT=null;
