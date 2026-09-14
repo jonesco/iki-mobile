@@ -1921,7 +1921,7 @@ function renderWorkspace(){
   $('workspace').querySelector('.ws-body').hidden=!(isRec||isConv);
   if(!(isRec||isConv)){ if(state.workspaceOpen) renderInvTable(); return; }
   $('wsTitle').textContent=isRec?'Recommendations':'Past conversations';
-  $('wsClose').hidden=isConv;
+  $('wsClose').hidden=true; // no close button on the card/list views; Escape or a rail click closes them
   $('wsFilters').hidden=true; $('wsPeriod').hidden=true;
   document.querySelector('.rec-loop').hidden=!isRec; $('convLoop').hidden=!isConv;
   if(!state.workspaceOpen) return;
