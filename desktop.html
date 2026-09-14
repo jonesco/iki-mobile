@@ -1909,7 +1909,7 @@ function renderRail(){
   
   $('convList').innerHTML=convs.length?convs.map(c=>`<button class="conv ${state.activeConv===c?'active':''}" data-conv="${c.id}">${c.sideOf?ICON.eye.replace('class="icon"','class="icon" style="color:var(--text-helper)"'):ICON.chat}<span class="t">${esc(c.title)}</span><span class="when">${esc(c.when||'now')}</span></button>`).join(''):'<div class="rail-empty">Nothing yet. Open an investigation to start one.</div>';
   $('recFoot').innerHTML=`<button class="all-link" id="recAllLink">${ICON.ext}All recommendations<span class="c">${RECOMMENDATIONS.length}</span></button>`;
-  $('convFoot').innerHTML=`<button class="all-link" id="convAllLink">${ICON.ext}All past conversations<span class="c">${state.convs.length}</span></button>`;
+  $('convFoot').innerHTML=`<button class="all-link" id="convAllLink">${ICON.ext}All past conversations</button>`;
   renderWorkspace();
 }
 function renderWorkspace(){
