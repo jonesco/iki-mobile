@@ -336,6 +336,7 @@
   .fab{position:absolute;top:64px;right:24px;display:inline-flex;align-items:center;min-width:40px;height:40px;padding:0 16px 0 12px;background:var(--layer-02);color:var(--text-primary);border:1px solid var(--border-strong);font:13px var(--sans);letter-spacing:.16px;border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.4);z-index:6;opacity:0;transform-origin:top right;transform:scale(.5);pointer-events:none;transition:opacity .2s ease .08s,transform .2s ease .08s,padding .28s cubic-bezier(.2,0,.38,.9)}
   .fab:hover{background:var(--layer-hover-02)}
   .fab.show{opacity:1;transform:none;pointer-events:auto}
+  .fab:not(.show){transition:none} /* hide instantly; only the reveal animates */
   .fab span{display:inline-block;max-width:200px;margin-left:8px;overflow:hidden;white-space:nowrap;opacity:1;transition:max-width .28s cubic-bezier(.2,0,.38,.9),margin-left .28s cubic-bezier(.2,0,.38,.9),opacity .16s ease}
   .fab-left{left:24px;right:auto;padding:0 12px 0 16px;transform-origin:top left}
   .fab-row{position:absolute;top:64px;right:72px;display:flex;align-items:center;gap:8px;z-index:6;pointer-events:none}
